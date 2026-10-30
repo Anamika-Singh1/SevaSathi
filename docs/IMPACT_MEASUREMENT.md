@@ -1,0 +1,40 @@
+# Pilot impact measurement
+
+SevaSathi has not been evaluated in an officer pilot. No reduction in processing time, return rate, overdue work or officer effort is claimed. The demonstration's fictional records and automated tests establish behavior, not operational impact.
+
+The current dashboard displays six scoped workload counts: pending, immediate attention, field verification pending, final review pending, overdue and recently processed. These are not a pilot impact report. The database holds useful timestamps and immutable workflow events, but dedicated drafting-time and usability instrumentation is not implemented.
+
+## Measurement definitions
+
+Before a pilot, fix the participating offices, intake period, follow-up cutoff, service targets, stage definitions and exclusion rules. Use a common intake cohort in both baseline and pilot periods. A completed case is a case that reaches the authorized human `APPROVED` or `REJECTED` state; completion does not mean certificate issuance. Report approvals and rejections separately as well.
+
+| Metric | Operational definition | How to measure in a pilot |
+| --- | --- | --- |
+| Average processing time | Sum of elapsed time from accepted submission to the first terminal human decision, divided by the number of completed cases with both timestamps | Use `applications.submitted_at` and `application_workflow.decided_at`, cross-checking the terminal audit event and `applications.processed_at`. Keep the original submission time through clarification. Report mean, median and 90th percentile, sample size, pending count and current pending age; do not drop pending cases silently. |
+| Average time per workflow stage | For each case and stage, sum all intervals spent in that stage, including later visits after a return. Average those totals over completed cohort cases that actually entered the stage | Reconstruct intervals from application creation/submission and ordered `STAGE_CHANGED` events, ending at the next distinct stage entry or terminal decision. Order by `created_at`, then `sequence`. Sum re-entry intervals rather than using only the current `stage_entered_at`. Report stage totals per case and, separately, per-visit durations. Same-stage clarification remains in that stage's elapsed time. |
+| Overdue rate | At a specified snapshot, open cases past their target date divided by all open cases in the agreed scope, multiplied by 100 | Take repeatable daily snapshots using the worklist's pending and overdue flags. For the prototype, overdue means the Asia/Kolkata calendar date is later than `effective_target_date`; a case due today is not overdue. Freeze the approved target policy before a pilot. The default ten-day threshold is a configurable demonstration value, not a statutory service deadline. Report the open-case denominator and missing-target records. |
+| Clarification return rate | Distinct intake-cohort cases with at least one clarification return by the fixed follow-up cutoff, divided by all intake-cohort cases, multiplied by 100 | Count `RETURNED_FOR_CLARIFICATION` events, deduplicating by case and request identity. A status-change event and its corresponding workflow action are not two returns. Include same-stage operator returns and nested returns. Also report return events per 100 cases and returning/requested stages to show repeated rework. |
+| Completion rate | Intake-cohort cases reaching a terminal human decision by the fixed follow-up cutoff divided by all cases accepted into that cohort, multiplied by 100 | Use terminal states and decision audit events. Publish cohort dates, observation length, approved/rejected counts and unresolved count. Use equal follow-up windows for baseline and pilot cohorts; a younger pilot cohort should not appear worse merely because it had less time to finish. |
+| AI-assisted drafting time | Officer active time from starting a defined drafting task to accepting an officer-checked draft, including generation wait, review, corrections and failed attempts | Conduct a consented time study or add narrowly scoped task timing before the pilot. Compare equivalent tasks performed manually and with AI, using a balanced/counterbalanced design across officers and task complexity. Record provider wait separately from officer editing and total time. Keep failed/abandoned attempts and manual recovery in the results. `generatedAt` alone cannot measure drafting time, and the present private quota table is not drafting telemetry. |
+| Officer usability | Task success, time on task, errors, assistance requests and officer ratings for the defined workflow tasks | Observe the four roles completing realistic fictional tasks on intended devices in Kannada and English. Record correct completion without help, validation mistakes, navigation problems and recovery. Follow with a consistent short questionnaire on clarity, effort, trust and language comfort, plus open feedback. Report the questionnaire and participant counts rather than inventing a usability score. |
+
+If a denominator is zero, publish “not applicable” and the count rather than 0% or an invented average. Never replace missing historical timestamps with fabricated events.
+
+## Baseline and comparison plan
+
+1. Agree a baseline from existing authorized case records or a prospective manual-work observation period. Use the same income-certificate scope, offices, intake criteria and completion definition as the pilot.
+2. Predefine the pilot cohort and follow-up window. Record volume, case complexity, staffing, public holidays and disruptions so differences in workload are visible.
+3. Preserve a timestamped, access-controlled analysis snapshot. Exclude developer/test/seed records; all records in this demonstration are fictional. Mark imported legacy cases with incomplete sign-offs/history as incomplete evidence and report exclusions.
+4. Compare the defined metrics with counts and uncertainty intervals appropriate to the sample. Stratify by office, role, language and case complexity where group sizes permit. Interpret before/after differences cautiously; staffing and case mix can explain changes.
+5. Review completed-case results together with open-case age and fixed-follow-up completion rate. For formal time-to-decision analysis, treat cases still open at cutoff as right-censored rather than pretending they finished at cutoff.
+6. Review a sample of decisions and officer corrections for quality. Faster drafting or fewer returns is not success if evidence review, fairness or decision accuracy deteriorates.
+
+Record timestamps in UTC and display reporting dates in Asia/Kolkata. Calendar elapsed time includes queueing, weekends and clarification wait. Report officer active time separately; calculate business time only after agreeing an explicit working-day calendar. The prototype does not separately timestamp applicant waiting time, so stage elapsed time cannot be presented as officer working time.
+
+## Data collection and reporting
+
+For an approved pilot, retain pseudonymous case/task IDs, role/stage, language, coarse device class, relevant timestamps, action outcome, target-policy version and timing-study observations. Keep names, document contents, passwords, prompts and full AI responses out of the measurement dataset. Existing audit records remain authoritative and immutable; analysis must not rewrite them to fit a hypothesis.
+
+The pilot owner should approve participant consent, access, retention and aggregate reporting before real operational data is used. Present small groups in a way that does not identify individual officers or applicants. Officer feedback should support process improvement rather than punitive ranking.
+
+A pilot report should include cohort dates, definitions, exclusions, sample sizes, baseline/pilot values, uncertainty, unresolved cases, AI failure rate, usability feedback and decision-quality findings. Leave baseline, pilot and improvement columns blank until measurements exist. No numerical benefit estimate is supplied by this prototype.
