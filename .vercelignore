@@ -1,0 +1,9 @@
+.env*
+!.env.example
+.git/
+.qa/
+test-results/
+playwright-report/
+coverage/
+*.log
+*.tsbuildinfo
