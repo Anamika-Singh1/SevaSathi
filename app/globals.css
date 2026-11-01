@@ -2,22 +2,22 @@
 @import "tw-animate-css";
 
 :root {
-  --background: #f5f7fa;
-  --foreground: #172b3a;
+  --background: #f4f6f8;
+  --foreground: #192f3d;
   --card: #ffffff;
   --card-foreground: #172b3a;
   --primary: #0f5962;
   --primary-foreground: #ffffff;
   --secondary: #e9f1ec;
   --secondary-foreground: #234c3f;
-  --muted: #eff2ee;
-  --muted-foreground: #536674;
+  --muted: #f0f3f5;
+  --muted-foreground: #526574;
   --accent: #eaf3f4;
   --accent-foreground: #0f5962;
   --destructive: #b13d3d;
-  --border: #e0e6eb;
-  --input: #d4dcd3;
-  --ring: #387a60;
+  --border: #dce4e9;
+  --input: #c6d1d9;
+  --ring: #0f5962;
   --radius: 0.75rem;
 }
 
@@ -43,7 +43,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans:
-    var(--font-kannada), "Noto Sans Kannada", "Nirmala UI", "Tunga", "Segoe UI",
+    "Segoe UI", var(--font-kannada), "Noto Sans Kannada", "Nirmala UI", "Tunga",
     sans-serif;
 }
 
@@ -55,6 +55,9 @@
     @apply bg-background font-sans text-foreground antialiased;
     overflow-wrap: anywhere;
     line-height: 1.7;
+  }
+  main {
+    scroll-margin-top: 1rem;
   }
   input,
   textarea,
@@ -72,6 +75,13 @@
   }
   textarea {
     resize: vertical;
+  }
+  input[readonly] {
+    background: var(--muted);
+    color: var(--muted-foreground);
+  }
+  select:disabled {
+    cursor: wait;
   }
   :lang(kn) {
     letter-spacing: normal;
@@ -110,13 +120,4 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-.login-pattern {
-  background-image:
-    radial-gradient(ellipse at 85% 85%, #3d7b6244 0, transparent 55%),
-    radial-gradient(#a8d8bd20 1px, transparent 1px);
-  background-size:
-    auto,
-    24px 24px;
 }

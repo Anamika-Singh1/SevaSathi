@@ -8,7 +8,6 @@ export default async function FieldWorkPage() {
       path="/field-work"
       status="FIELD_VERIFICATION"
       title={t("Field verification")}
-      eyebrow={t("Field officer queue")}
       description={t("Applications assigned to you for field verification.")}
     />
   );

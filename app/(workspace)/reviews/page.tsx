@@ -8,7 +8,6 @@ export default async function ReviewsPage() {
       path="/reviews"
       status="UNDER_REVIEW"
       title={t("Caseworker review")}
-      eyebrow={t("Caseworker queue")}
       description={t("Applications awaiting caseworker review in your taluk.")}
     />
   );

@@ -2,11 +2,8 @@ import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import {
-  ArrowUpRight,
   FileCheck2,
   LockKeyhole,
-  ShieldCheck,
-  Languages,
   CircleCheck,
 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -49,52 +46,26 @@ export default async function LoginPage({
       className="grid min-h-svh lg:grid-cols-[1.05fr_1fr]"
     >
       {params.loggedOut === "1" && <ClearSignedOutDrafts />}
-      <section className="login-pattern relative flex flex-col justify-between overflow-hidden bg-[#143e32] px-7 py-9 text-white sm:px-12 lg:min-h-svh lg:px-16 lg:py-12">
+      <section className="flex flex-col justify-between bg-[#153848] px-6 py-6 text-white sm:px-12 lg:min-h-svh lg:px-16 lg:py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Brand dark />
           <LanguageSwitcher />
         </div>
-        <div className="relative my-14 max-w-lg lg:my-24">
-          <span className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] text-emerald-100">
-            <span className="size-1.5 rounded-full bg-emerald-300" />
-            {t("Revenue officer workspace")}
-          </span>
-          <h1 className="text-4xl leading-[1.65] font-semibold tracking-tight sm:text-5xl">
-            {t("Simpler service.")}
-            <br />
-            <span className="text-[#bddec6]">{t("Clearer decisions.")}</span>
-          </h1>
-          <p
-            lang={locale}
-            className="mt-5 max-w-sm text-base leading-7 text-emerald-50/65"
-          >
-            {t(
-              "A clearer path from application to income certificate. Built around the officers who make it happen.",
-            )}
-          </p>
-          <div className="mt-10 flex gap-4 border-t border-white/15 pt-7">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
-              <FileCheck2 className="size-5 text-emerald-200" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">
-                {t("One workspace. Every stage.")}
-              </p>
-              <p
-                lang={locale}
-                className="mt-2 text-xs leading-6 text-emerald-50/55"
-              >
-                {t("Applications · Field verification · Review · Approval")}
-              </p>
-            </div>
-          </div>
+        <div className="my-16 hidden max-w-lg lg:block">
+          <FileCheck2 className="mb-6 size-9 text-teal-200" aria-hidden="true" />
+          <h2 className="text-4xl leading-[1.65] font-semibold tracking-tight">{t("Income certificate workspace")}</h2>
+          <p className="mt-4 text-base leading-8 text-slate-200">{t("Track applications, record evidence and make informed decisions.")}</p>
+          <ol className="mt-10 space-y-5 border-t border-white/20 pt-8">
+            {(["Document screening", "Field verification", "Caseworker review", "Final decision"] as const).map((label, index) => (
+              <li key={label} className="flex items-center gap-4 text-sm leading-7">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/30 text-xs text-teal-100" aria-hidden="true">{index + 1}</span>
+                {t(label)}
+              </li>
+            ))}
+          </ol>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-emerald-50/55">
+        <div className="hidden text-sm leading-7 text-slate-200 lg:block">
           <span lang={locale}>{t("Karnataka · Revenue workflow")}</span>
-          <span className="inline-flex items-center gap-1.5">
-            <Languages className="size-4" />
-            {t("Kannada first")}
-          </span>
         </div>
       </section>
       <section className="flex flex-col justify-center px-7 py-12 sm:px-14 lg:px-20">
@@ -102,21 +73,11 @@ export default async function LoginPage({
           <div className="mb-7 flex size-12 items-center justify-center rounded-xl border border-border bg-white text-primary">
             <LockKeyhole className="size-5" />
           </div>
-          <p
-            lang={locale}
-            className="mb-3 text-[10px] font-semibold tracking-[0.2em] text-primary uppercase"
-          >
-            {t("Officer workspace")}
-          </p>
-          <h2 className="text-3xl leading-relaxed font-bold">
+          <h1 className="text-3xl leading-relaxed font-semibold">
             {t("Welcome back")}
-          </h2>
+          </h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            {t("Sign in with your official account.")}
-            <br />
-            <span lang={locale}>
-              {t("Sign in to your SevaSathi workspace.")}
-            </span>
+            {t("Sign in to your SevaSathi workspace.")}
           </p>
           {!configured && (
             <div
@@ -125,11 +86,7 @@ export default async function LoginPage({
             >
               <p className="font-semibold">{t("Setup required")}</p>
               <p lang={locale} className="mt-1">
-                {t("Add your Supabase URL and publishable key to")}{" "}
-                <code>{t(".env.local")}</code>
-                {t(
-                  ", run the migration and demo setup, then restart. See README.md.",
-                )}
+                {t("Sign-in is not configured. Contact your administrator.")}
               </p>
             </div>
           )}
@@ -151,23 +108,9 @@ export default async function LoginPage({
             </p>
           )}
           <LoginForm next={next} configured={configured} />
-          <div className="mt-10 flex items-start gap-3 border-t border-border pt-6 text-muted-foreground">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-            <p className="text-[11px] leading-6">
-              <span lang={locale}>
-                {t(
-                  "Access is limited to provisioned officers. Your role is managed by an administrator.",
-                )}
-              </span>
-            </p>
-          </div>
-          <div className="mt-7 flex items-center justify-between gap-3 text-[10px] text-muted-foreground">
-            <span lang={locale}>{t("Phase 5 · Fictional demonstration")}</span>
-            <span className="flex items-center gap-1" lang={locale}>
-              {t("Kenpath assignment")}
-              <ArrowUpRight className="size-3" />
-            </span>
-          </div>
+          <p className="mt-8 border-t border-border pt-5 text-xs leading-7 text-muted-foreground">
+            {t("Independent demonstration. Fictional data only. Not an official government service.")}
+          </p>
         </div>
       </section>
     </main>

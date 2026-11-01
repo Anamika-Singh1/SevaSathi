@@ -94,7 +94,7 @@ export function ApplicationCreateForm({
       try {
         const response = await createApplication(input);
         setResult(response);
-        if (response.ok) router.push(`/applications/${response.applicationId}`);
+        if (response.ok) router.push(`/applications/${response.applicationId}?created=1`);
       } catch {
         setResult({
           ok: false,
@@ -107,13 +107,13 @@ export function ApplicationCreateForm({
   }
 
   return (
-    <Card className="min-w-0 max-w-3xl">
+    <Card className="min-w-0 max-w-4xl">
       <CardHeader>
         <h2 className="text-base leading-8 font-semibold">
-          {t("Enter applicant details to begin document screening.")}
+          {t("Applicant information")}
         </h2>
         <p className="text-sm leading-7 text-muted-foreground">
-          {t("Enter fictional details for this demonstration.")}
+          {t("Fields marked * are required.")}
         </p>
       </CardHeader>
       <CardContent>
@@ -136,7 +136,7 @@ export function ApplicationCreateForm({
           <fieldset disabled={busy} className="min-w-0 space-y-5">
             <div className="min-w-0 space-y-2">
               <label htmlFor="application-applicant_name" className="block text-sm leading-7 font-semibold">
-                {t("Applicant name")}
+                {t("Applicant name")}<span aria-hidden="true" className="ml-1 text-destructive">*</span>
               </label>
               <Input
                 id="application-applicant_name" name="applicant_name" required maxLength={120}
@@ -145,12 +145,12 @@ export function ApplicationCreateForm({
                 aria-invalid={!!errorFor("applicant_name")} aria-describedby={describedBy("applicant_name")}
               />
               <p id="application-applicant_name-help" className="text-xs leading-7 text-muted-foreground">
-                {t("Enter the applicant name (1–120 characters).")}
+                {t("As shown on the application.")}
               </p>
               {fieldError("applicant_name")}
             </div>
             <div className="min-w-0 space-y-2">
-              <label htmlFor="application-village" className="block text-sm leading-7 font-semibold">{t("Village")}</label>
+              <label htmlFor="application-village" className="block text-sm leading-7 font-semibold">{t("Village")}<span aria-hidden="true" className="ml-1 text-destructive">*</span></label>
               <Input
                 id="application-village" name="village" required maxLength={120}
                 autoComplete="off" value={fields.village}
@@ -158,13 +158,13 @@ export function ApplicationCreateForm({
                 aria-invalid={!!errorFor("village")} aria-describedby={describedBy("village")}
               />
               <p id="application-village-help" className="text-xs leading-7 text-muted-foreground">
-                {t("Enter a village (1–120 characters).")}
+                {t("Village or locality from the application.")}
               </p>
               {fieldError("village")}
             </div>
             <div className="grid min-w-0 gap-5 sm:grid-cols-2">
               <div className="min-w-0 space-y-2">
-                <label htmlFor="application-certificate_type" className="block text-sm leading-7 font-semibold">{t("Certificate type")}</label>
+                <label htmlFor="application-certificate_type" className="block text-sm leading-7 font-semibold">{t("Certificate type")}<span aria-hidden="true" className="ml-1 text-destructive">*</span></label>
                 <select id="application-certificate_type" name="certificate_type" required
                   value={fields.certificate_type} onChange={() => setFields((value) => ({ ...value, certificate_type: "INCOME" }))}
                   className="min-h-11 w-full min-w-0 rounded-lg border border-input bg-white px-3 py-2 text-sm leading-7"
@@ -176,7 +176,7 @@ export function ApplicationCreateForm({
                 {fieldError("certificate_type")}
               </div>
               <div className="min-w-0 space-y-2">
-                <label htmlFor="application-application_date" className="block text-sm leading-7 font-semibold">{t("Application date")}</label>
+                <label htmlFor="application-application_date" className="block text-sm leading-7 font-semibold">{t("Application date")}<span aria-hidden="true" className="ml-1 text-destructive">*</span></label>
                 <Input id="application-application_date" name="application_date" type="date" required min="1900-01-01" max={today}
                   value={fields.application_date} onChange={(event) => setFields((value) => ({ ...value, application_date: event.target.value }))}
                   aria-invalid={!!errorFor("application_date")} aria-describedby={describedBy("application_date")}
@@ -186,7 +186,7 @@ export function ApplicationCreateForm({
               </div>
             </div>
             <div className="min-w-0 space-y-2">
-              <label htmlFor="application-annual_income" className="block text-sm leading-7 font-semibold">{t("Annual income (₹)")}</label>
+              <label htmlFor="application-annual_income" className="block text-sm leading-7 font-semibold">{t("Annual income (₹)")}<span aria-hidden="true" className="ml-1 text-destructive">*</span></label>
               <Input
                 id="application-annual_income" name="annual_income" type="number" min="0" max="9999999999.99"
                 step="0.01" inputMode="decimal" required value={fields.annual_income}
@@ -194,12 +194,12 @@ export function ApplicationCreateForm({
                 aria-invalid={!!errorFor("annual_income")} aria-describedby={describedBy("annual_income")}
               />
               <p id="application-annual_income-help" className="text-xs leading-7 text-muted-foreground">
-                {t("Enter annual income from 0 to 9999999999.99, with at most two decimal places.")}
+                {t("Use the amount declared by the applicant.")}
               </p>
               {fieldError("annual_income")}
             </div>
             <div className="min-w-0 space-y-2">
-              <label htmlFor="application-purpose" className="block text-sm leading-7 font-semibold">{t("Purpose")}</label>
+              <label htmlFor="application-purpose" className="block text-sm leading-7 font-semibold">{t("Purpose")}<span aria-hidden="true" className="ml-1 text-destructive">*</span></label>
               <textarea
                 id="application-purpose" name="purpose" required maxLength={500} rows={4}
                 className="min-h-28 w-full min-w-0 rounded-lg border border-input bg-white px-3 py-2 text-base leading-8 disabled:opacity-50"
@@ -208,7 +208,7 @@ export function ApplicationCreateForm({
                 aria-invalid={!!errorFor("purpose")} aria-describedby={describedBy("purpose")}
               />
               <p id="application-purpose-help" className="text-xs leading-7 text-muted-foreground">
-                {t("Enter a purpose (1–500 characters).")}
+                {t("Why the certificate is needed.")}
               </p>
               {fieldError("purpose")}
             </div>

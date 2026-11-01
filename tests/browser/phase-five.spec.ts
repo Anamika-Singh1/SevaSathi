@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../types/database";
 import { DEMO_USERS } from "../../scripts/demo-users";
 import type { Role } from "../../lib/roles";
+import { createTranslator, type MessageKey } from "../../lib/i18n";
 
 const base = process.env.TEST_BASE_URL ?? "http://127.0.0.1:3000";
 async function language(page: Page, value: "kn" | "en") {
@@ -116,6 +117,7 @@ test("language preferences persist across refresh and new tabs; both languages f
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await expect(page.getByText("Independent demonstration. Fictional data only. Not an official government service.", { exact: true })).toBeVisible();
   const preference = (await page.context().cookies()).find(
     (cookie) => cookie.name === "sevasathi_language",
   )!;
@@ -130,6 +132,7 @@ test("language preferences persist across refresh and new tabs; both languages f
   await tab.close();
   await login(page);
   for (const locale of ["kn", "en"] as const) {
+    const t = createTranslator(locale);
     await language(page, locale);
     for (const width of [360, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -142,6 +145,17 @@ test("language preferences persist across refresh and new tabs; both languages f
       ]) {
         await page.goto(path);
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        const title: MessageKey = path === "/dashboard" ? "Dashboard" : path === "/applications" ? "Applications"
+          : path === "/applications/new" ? "Add application" : path === "/settings" ? "Account details" : "Application details";
+        await expect(page.locator('[data-testid="workspace-title"]:visible')).toHaveText(t(title));
+        const shellText = await page.locator("header,aside,footer").evaluateAll(nodes => nodes.map(node => node.textContent).join(" "));
+        expect(shellText).not.toMatch(/Phase\s*\d|Kenpath|Hiring Assignment|MVP Version/i);
+        if (path === "/dashboard") {
+          expect(await page.locator("#attention-heading").evaluate(node => {
+            const screening = document.querySelector('[data-testid="dashboard-screening-queue"]');
+            return !screening || !!(node.compareDocumentPosition(screening) & Node.DOCUMENT_POSITION_FOLLOWING);
+          })).toBe(true);
+        }
         await expect(page.locator("html")).toHaveAttribute("lang", locale);
         await expect(page.locator("header")).toContainText(locale === "en" ? "Demo operator" : "ಮಾದರಿ ನಿರ್ವಾಹಕರು");
         if (path.endsWith("000000000001")) {
@@ -347,7 +361,7 @@ test("four officers complete the workflow in Kannada, including clarification, d
     await saved(page);
     page = await open("FIELD_OFFICER");
     await page
-      .getByRole("button", { name: "ಹಿಂತಿರುಗಿಸಿ", exact: true })
+      .getByRole("button", { name: "ಸ್ಪಷ್ಟೀಕರಣಕ್ಕಾಗಿ ಹಿಂತಿರುಗಿಸಿ", exact: true })
       .click();
     await expect(page.locator('[name="reason"]')).toHaveAttribute(
       "aria-invalid",
@@ -360,7 +374,7 @@ test("four officers complete the workflow in Kannada, including clarification, d
       .locator('[name="reason"]')
       .fill("ನಿವಾಸದ ದಾಖಲೆಗೆ ಹೆಚ್ಚಿನ ಸ್ಪಷ್ಟೀಕರಣ ಅಗತ್ಯ.");
     await page
-      .getByRole("button", { name: "ಹಿಂತಿರುಗಿಸಿ", exact: true })
+      .getByRole("button", { name: "ಸ್ಪಷ್ಟೀಕರಣಕ್ಕಾಗಿ ಹಿಂತಿರುಗಿಸಿ", exact: true })
       .click();
     await saved(page);
     page = await open("OPERATOR");
@@ -469,10 +483,10 @@ test("four officers complete the workflow in Kannada, including clarification, d
     );
     await fit(page);
   } finally {
-    for (const context of contexts) await context.close();
-    if (id)
-      expect(
-        (await admin.from("applications").delete().eq("id", id)).error,
-      ).toBeNull();
+    try {
+      if (id) expect((await admin.from("applications").delete().eq("id", id)).error).toBeNull();
+    } finally {
+      await Promise.allSettled(contexts.map(context => context.close()));
+    }
   }
 });

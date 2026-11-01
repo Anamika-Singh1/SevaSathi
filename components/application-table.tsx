@@ -94,7 +94,7 @@ export async function ApplicationTable({
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">
-                  {t("Demo target")}
+                  {t("Target date")}
                 </dt>
                 <dd
                   className={`mt-2 font-medium ${application.is_overdue ? "text-rose-800" : ""}`}
@@ -123,7 +123,7 @@ export async function ApplicationTable({
       >
         <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">
-            {t("Applications with priority reasons and demo targets")}
+            {t("Applications with priority reasons and target dates")}
           </caption>
           <thead className="border-b border-border bg-slate-50 text-xs leading-6 text-muted-foreground">
             <tr>
@@ -143,7 +143,7 @@ export async function ApplicationTable({
                 {t("Days pending")}
               </th>
               <th scope="col" className="w-[16%] px-4 py-4 font-medium">
-                {t("Demo target")}
+                {t("Target date")}
               </th>
             </tr>
           </thead>
@@ -156,7 +156,7 @@ export async function ApplicationTable({
                 <td className="px-4 py-5">
                   <Link
                     href={`/applications/${application.id}`}
-                    className="inline-flex min-h-11 items-center break-all font-mono text-xs font-semibold text-primary underline-offset-4 hover:underline"
+                    className="inline-flex min-h-11 items-center break-all font-mono text-sm font-semibold text-primary underline-offset-4 hover:underline"
                   >
                     {application.reference_number}
                   </Link>

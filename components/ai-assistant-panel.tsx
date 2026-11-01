@@ -5,7 +5,7 @@ import { translateMessage } from "@/lib/i18n";
 import { aiErrorMessage } from "@/lib/ai/errors";
 import { useEffect, useRef, useState } from "react";
 import {
-  Sparkles,
+  FilePenLine,
   Copy,
   RefreshCw,
   LoaderCircle,
@@ -182,7 +182,7 @@ export function AiAssistantPanel({
     >
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Sparkles className="size-5 shrink-0 text-primary" />
+          <FilePenLine className="size-5 shrink-0 text-primary" aria-hidden="true" />
           <h2 className="text-base leading-8 font-semibold">
             {t("AI assistance")}
           </h2>
@@ -197,13 +197,13 @@ export function AiAssistantPanel({
           <ShieldCheck className="mt-1 size-4 shrink-0" />
           <p>
             {t(
-              "AI draft only. Verify against saved records. Only an authorized human officer may make the official decision.",
+              "AI suggestions require officer review.",
             )}
           </p>
         </div>
         <p className="text-xs leading-7 text-muted-foreground">
           {t(
-            "Uses saved records only. Save manual edits first. Generating, editing or copying AI text never changes the case.",
+            "Save your notes before generating. AI uses saved records.",
           )}
         </p>
         {!allowed ? (
@@ -279,7 +279,7 @@ export function AiAssistantPanel({
                   ) : response ? (
                     <RefreshCw className="size-4" />
                   ) : (
-                    <Sparkles className="size-4" />
+                    <FilePenLine className="size-4" />
                   )}
                 </span>
                 <span>

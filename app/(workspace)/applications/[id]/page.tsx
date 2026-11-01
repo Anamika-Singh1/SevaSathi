@@ -2,7 +2,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { eventLabel, priorityReason, certificateLabel, locationLabel, officerLabel, documentLabel, demoRecordText } from "@/lib/i18n/records";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText, Info, ClipboardList } from "lucide-react";
+import { ArrowLeft, FileText, CircleCheck, ClipboardList } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
@@ -26,13 +26,16 @@ import { formatDate, formatCurrency } from "@/lib/utils";
 
 export default async function ApplicationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ created?: string }>;
 }) {
   const { t, locale } = await getI18n();
 
   const record = await getApplication((await params).id);
   if (!record) notFound();
+  const query = await searchParams;
   const {
     application,
     documents,
@@ -68,7 +71,7 @@ export default async function ApplicationPage({
   const dates = [
     [t("Submitted"), formatDate(application.submitted_at, locale)],
     [t("Stage entered"), formatDate(application.stage_entered_at, locale)],
-    [t("Demo target"), formatDate(application.effective_target_date, locale)],
+    [t("Target date"), formatDate(application.effective_target_date, locale)],
     [t("Last updated"), formatDate(application.updated_at, locale)],
     [
       t("Days pending"),
@@ -107,7 +110,7 @@ export default async function ApplicationPage({
           <span
             className={`rounded-lg border px-3 py-2 text-xs leading-6 ${application.is_overdue ? "border-rose-200 bg-rose-50 text-rose-900" : "border-border bg-white text-muted-foreground"}`}
           >
-            {t("Demo target")}
+            {t("Target date")}
             <br />
             <strong className="font-semibold">
               {formatDate(application.effective_target_date, locale)}
@@ -115,41 +118,53 @@ export default async function ApplicationPage({
           </span>
         </div>
       </PageHeading>
-      {application.is_demo && (
-        <p className="mb-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-7 text-amber-900">
-          <Info className="mt-1 size-4 shrink-0" />
-          {t("Fictional demo application. No real citizen data.")}
+      {query.created === "1" && application.status === "SUBMITTED" && events.some(event => event.event_type === "APPLICATION_CREATED") && (
+        <p role="status" className="mb-6 flex items-start gap-2 rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm leading-7 text-teal-950">
+          <CircleCheck className="mt-1 size-4 shrink-0" aria-hidden="true" />
+          {t("Application created. Document screening is ready.")}
         </p>
       )}
       <nav
         aria-label={t("Application sections")}
-        className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-3 xl:grid-cols-6"
+        className="mb-6 flex flex-wrap gap-1 rounded-xl border border-border bg-white p-2"
       >
         {[
-          ["overview", t("Overview"), "Overview"],
-          ["documents", t("Document checklist"), "Documents"],
-          ["field-verification", t("Field verification"), "Field verification"],
-          ["caseworker-review", t("Caseworker review"), "Caseworker review"],
-          ["ai-assistance", t("AI assistance"), "AI assistance"],
-          ["history", t("Application history"), "History"],
+          ["workflow-actions", t("Workflow actions")],
+          ["ai-assistance", t("AI assistance")],
+          ["overview", t("Overview")],
+          ["documents", t("Document checklist")],
+          ["field-verification", t("Field verification")],
+          ["caseworker-review", t("Caseworker review")],
+          ["translated-reading", t("Translated reading view")],
+          ["history", t("Application history")],
         ].map(([id, label]) => (
           <a
             key={id}
             href={`#${id}`}
-            className="flex min-h-12 min-w-0 flex-col justify-center rounded-lg px-3 py-2 text-xs leading-6 text-primary transition-colors hover:bg-accent"
+            className="flex min-h-11 min-w-0 items-center rounded-lg px-3 py-2 text-sm leading-7 text-primary transition-colors hover:bg-accent"
           >
             <span className="font-semibold">{label}</span>
           </a>
         ))}
       </nav>
-      <WorkflowPanel
-        application={application}
-        workflow={workflow}
-        checklist={checklist}
-        officers={officers}
-        officer={{ id: profile.id, role: profile.role }}
-        today={application.today}
-      />
+      <div className="mb-6 grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <WorkflowPanel
+          application={application}
+          workflow={workflow}
+          checklist={checklist}
+          officers={officers}
+          officer={{ id: profile.id, role: profile.role }}
+          today={application.today}
+        />
+        <AiAssistantPanel
+          key={`${application.id}-${workflow.version}-${profile.id}`}
+          applicationId={application.id}
+          version={workflow.version}
+          feature={featureForRole(profile.role)}
+          allowed={canUseAi(featureForRole(profile.role), record, profile)}
+          closed={["APPROVED", "REJECTED"].includes(application.status)}
+        />
+      </div>
       <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-6">
           <Card id="overview" className="scroll-mt-6">
@@ -186,7 +201,7 @@ export default async function ApplicationPage({
               </h2>
               <p className="text-xs leading-6 text-muted-foreground">
                 {t(
-                  "Officer-recorded receipt status. Demo checklist, not an official requirements list.",
+                  "Officer-recorded document receipt and notes.",
                 )}
               </p>
             </CardHeader>
@@ -241,11 +256,7 @@ export default async function ApplicationPage({
                         {document.file_name}
                       </p>
                       <p className="mt-2 text-xs leading-7 text-muted-foreground">
-                        {document.is_demo
-                          ? t("Demo metadata recorded; no file attached.")
-                          : t(
-                              "Metadata recorded. File viewing is planned for a later phase.",
-                            )}
+                        {t("File viewing is unavailable in this workspace.")}
                       </p>
                       <p className="mt-2 text-xs text-muted-foreground">
                         {t("Recorded:")}{" "}
@@ -447,9 +458,6 @@ export default async function ApplicationPage({
                   </ul>
                 </div>
               )}
-              <p className="mt-5 text-xs leading-7 text-muted-foreground">
-                {t("Priority follows configurable demo thresholds.")}
-              </p>
             </CardContent>
           </Card>
           <Card>
@@ -473,24 +481,11 @@ export default async function ApplicationPage({
               </dl>
             </CardContent>
           </Card>
-          <AiAssistantPanel
-            key={`${application.id}-${workflow.version}-${profile.id}`}
-            applicationId={application.id}
-            version={workflow.version}
-            feature={featureForRole(profile.role)}
-            allowed={canUseAi(featureForRole(profile.role), record, profile)}
-            closed={["APPROVED", "REJECTED"].includes(application.status)}
-          />
           <Card id="history" className="scroll-mt-6">
             <CardHeader>
               <h2 className="text-base leading-8 font-semibold">
                 {t("Application history")}
               </h2>
-              <p className="text-xs leading-7 text-muted-foreground">
-                {t(
-                  "Append-only action history with actor, role, timestamp and reason.",
-                )}
-              </p>
             </CardHeader>
             <CardContent>
               <WorkflowHistory events={events} checklist={checklist} />

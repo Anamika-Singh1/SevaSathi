@@ -8,7 +8,6 @@ export default async function DecisionsPage() {
       path="/decisions"
       status="PENDING_APPROVAL"
       title={t("Final decision")}
-      eyebrow={t("Approving officer queue")}
       description={t("Applications awaiting a final decision in your taluk.")}
     />
   );

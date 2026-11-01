@@ -93,7 +93,7 @@ export function WorkflowPanel({
     ({
       SAVE: t("Save progress"),
       ADVANCE: t("Advance"),
-      RETURN: t("Return"),
+      RETURN: t("Return for clarification"),
       RESUME: t("Resume"),
       APPROVE: t("Approve"),
       REJECT: t("Reject"),
@@ -293,7 +293,7 @@ export function WorkflowPanel({
   }
 
   return (
-    <Card className="mb-7 border-primary/25" data-testid="workflow-panel">
+    <Card id="workflow-actions" className="mb-7 scroll-mt-6 border-primary/25 xl:mb-0" data-testid="workflow-panel">
       <CardHeader>
         <p className="text-xs font-semibold tracking-wide text-primary">
           {closed
@@ -307,7 +307,7 @@ export function WorkflowPanel({
         </h2>
         <ol
           aria-label={t("Workflow stage")}
-          className="grid grid-cols-2 gap-2 pt-3 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-2 pt-3 2xl:grid-cols-4"
         >
           {Object.entries(STAGES).map(([status, entry], index) => {
             const done =
@@ -337,7 +337,7 @@ export function WorkflowPanel({
                       ? "Current step"
                       : done
                         ? "Completed step"
-                        : "Upcoming step",
+                        : closed ? "Not recorded" : "Upcoming step",
                   )}
                 </span>
               </li>
@@ -468,7 +468,7 @@ export function WorkflowPanel({
                   <>
                     <p className="text-xs leading-7 text-muted-foreground">
                       {t(
-                        "Demo checklist; manually record receipt. This does not upload or verify a file.",
+                        "Record document receipt here. This does not upload or verify a file.",
                       )}
                     </p>
                     {checklist.map((item) => (
@@ -850,7 +850,7 @@ export function WorkflowPanel({
                       onClick={() => send("RETURN")}
                     >
                       <RotateCcw />
-                      {t("Return")}
+                      {t("Return for clarification")}
                     </Button>
                   )}
                 </div>
@@ -884,7 +884,7 @@ export function WorkflowPanel({
       <dialog
         ref={dialog}
         onCancel={() => setConfirmation(null)}
-        className="m-auto w-[calc(100%_-_2rem)] max-w-lg rounded-xl border border-border bg-white p-5 text-foreground shadow-xl backdrop:bg-slate-950/40"
+        className="m-auto max-h-[calc(100svh_-_2rem)] w-[calc(100%_-_2rem)] max-w-lg overflow-y-auto rounded-xl border border-border bg-white p-5 text-foreground shadow-xl backdrop:bg-slate-950/40 sm:p-6"
         aria-labelledby="workflow-confirm-title"
       >
         <AlertCircle className="mb-3 size-6 text-primary" />
@@ -901,7 +901,7 @@ export function WorkflowPanel({
           {confirmation && labelForAction(confirmation)}
         </p>
         <p className="mt-2 text-sm leading-8 text-muted-foreground">
-          {t("Approval or rejection locks this case.")}
+          {t(confirmation === "RETURN" ? "The application will return for clarification. Its history will be retained." : "Approval or rejection locks this case.")}
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Button
@@ -918,6 +918,7 @@ export function WorkflowPanel({
           <Button
             type="button"
             disabled={pending}
+            variant={confirmation === "REJECT" ? "destructive" : "default"}
             onClick={() => confirmation && send(confirmation, true)}
           >
             {pending ? t("Saving…") : t("Confirm")}
@@ -925,7 +926,7 @@ export function WorkflowPanel({
         </div>
         {result && !result.ok && (
           <p role="alert" className="mt-4 text-sm leading-8 text-rose-900">
-            {result.message}
+            {translateMessage(result.message, locale)}
           </p>
         )}
       </dialog>

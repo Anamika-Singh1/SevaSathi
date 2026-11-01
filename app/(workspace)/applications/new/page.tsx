@@ -21,7 +21,6 @@ export default async function NewApplicationPage() {
   return (
     <>
       <PageHeading
-        eyebrow={t("Application entry")}
         title={t("Add application")}
         description={t("Create a new income-certificate application.")}
       >

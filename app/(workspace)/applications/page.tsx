@@ -55,7 +55,6 @@ export default async function ApplicationsPage({
   return (
     <>
       <PageHeading
-        eyebrow={t("Application management")}
         title={t("Applications")}
         description={t(
           "Search and manage your authorized application register.",

@@ -206,7 +206,8 @@ test("operator intake fits Kannada and English screens, retries a lost response 
 
     await page.unroute("**/applications/new");
     await form.getByRole("button", { name: "Create application", exact: true }).click();
-    await expect(page).toHaveURL(`${base}/applications/${application.id}`);
+    await expect(page).toHaveURL(`${base}/applications/${application.id}?created=1`);
+    await expect(page.getByRole("status").filter({ hasText: "Application created. Document screening is ready." })).toBeVisible();
     await expect(page.getByTestId("workflow-panel")).toBeVisible();
     await expect(page.getByTestId("workflow-panel")).toContainText("Document screening");
     await expect(page.getByRole("main")).toContainText(application.reference_number);

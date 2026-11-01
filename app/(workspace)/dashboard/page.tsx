@@ -40,6 +40,7 @@ export default async function DashboardPage({
     getWorkflowSettings(),
     searchParams,
   ]);
+  const additionalScreening = screening.filter(application => !queue.some(item => item.id === application.id));
   const metrics = [
     {
       label: t("Pending applications"),
@@ -73,7 +74,7 @@ export default async function DashboardPage({
       en: "Final review pending",
       count: stats.review,
       icon: ClipboardCheck,
-      tone: "bg-indigo-50 text-indigo-800",
+      tone: "bg-blue-50 text-blue-800",
       href: "view=final-review",
       hint: t("Review + approval"),
     },
@@ -82,9 +83,9 @@ export default async function DashboardPage({
       en: "Overdue applications",
       count: stats.overdue,
       icon: AlarmClock,
-      tone: "bg-orange-50 text-orange-900",
+      tone: "bg-amber-50 text-amber-900",
       href: "overdue=yes&sort=target",
-      hint: t("Past demo target"),
+      hint: t("Past target date"),
     },
     {
       label: t("Recently processed"),
@@ -99,8 +100,7 @@ export default async function DashboardPage({
   return (
     <>
       <PageHeading
-        eyebrow={t("Dashboard")}
-        title={t("Welcome to your workspace")}
+        title={t("Dashboard")}
         description={t(
           "{taluk} taluk · Your applications and today’s priorities.",
           { taluk: locationLabel(profile.taluk, locale) },
@@ -108,14 +108,14 @@ export default async function DashboardPage({
       >
         <div className="flex min-w-0 flex-wrap gap-3">
           {profile.role === "OPERATOR" && (
-            <Button asChild variant="outline">
+            <Button asChild>
               <Link href="/applications/new">
                 <Plus aria-hidden="true" />
                 {t("Add application")}
               </Link>
             </Button>
           )}
-          <Button asChild>
+          <Button asChild variant="outline">
             <Link href="/applications">
               {t("View applications")}
               <ArrowRight />
@@ -131,16 +131,8 @@ export default async function DashboardPage({
           {t("Your role does not have access to that page.")}
         </p>
       )}
-      <div className="mb-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-        <span className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-teal-600" />
-          {t("Live database")}
-        </span>
-        <span>{formatDate(new Date().toISOString(), locale)}</span>
-        <span>{t("Your authorized scope")}</span>
-      </div>
       <div
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4"
         data-testid="dashboard-metrics"
       >
         {metrics.map(({ label, en, count, icon: Icon, tone, href, hint }) => (
@@ -149,45 +141,27 @@ export default async function DashboardPage({
             href={`/applications?${href}`}
             className="group min-w-0 rounded-xl"
           >
-            <Card className="h-full p-5 transition-colors group-hover:border-primary/40 sm:p-6">
-              <div className="flex items-start justify-between">
-                <span
-                  className={`flex size-11 items-center justify-center rounded-xl ${tone}`}
-                >
-                  <Icon className="size-5" />
+            <Card className="h-full p-4 transition-colors group-hover:border-primary/50 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-sm leading-7 font-medium text-muted-foreground">{label}</h2>
+                <span className={`hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex ${tone}`}>
+                  <Icon className="size-4" aria-hidden="true" />
                 </span>
-                <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-primary" />
               </div>
-              <p
-                className="mt-5 text-3xl font-bold tracking-tight tabular-nums"
-                data-metric={en}
-              >
-                {count}
-              </p>
-              <h2 className="mt-3 text-sm leading-7 font-semibold">{label}</h2>
-              <p className="mt-4 border-t border-border pt-3 text-xs leading-6 text-muted-foreground">
-                {hint}
-              </p>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-3xl leading-relaxed font-semibold tabular-nums" data-metric={en}>{count}</p>
+                  <p className="text-xs leading-7 text-muted-foreground">{hint}</p>
+                </div>
+                <ArrowUpRight className="mb-1 size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+              </div>
             </Card>
           </Link>
         ))}
       </div>
-      {profile.role === "OPERATOR" && (
-        <section className="mt-10" aria-labelledby="screening-heading" data-testid="dashboard-screening-queue">
-          <h2 id="screening-heading" className="text-lg leading-8 font-semibold">{t("Document screening queue")}</h2>
-          <p className="mt-1 mb-5 text-xs leading-6 text-muted-foreground">{t("New applications awaiting document screening.")}</p>
-          <ApplicationTable applications={screening} />
-        </section>
-      )}
       <section className="mt-10" aria-labelledby="attention-heading">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p
-              lang={locale}
-              className="mb-2 text-[10px] font-semibold tracking-[0.16em] text-primary uppercase"
-            >
-              {t("Focus for today")}
-            </p>
             <h2
               id="attention-heading"
               className="text-lg leading-8 font-semibold"
@@ -195,7 +169,7 @@ export default async function DashboardPage({
               {t("Applications needing attention")}
             </h2>
             <p className="mt-1 text-xs leading-6 text-muted-foreground">
-              {t("Attention priority queue · Top 5")}
+              {t("High and immediate priority · Top 5")}
             </p>
           </div>
           <Button asChild variant="outline">
@@ -207,6 +181,15 @@ export default async function DashboardPage({
         </div>
         <ApplicationTable applications={queue} />
       </section>
+      {profile.role === "OPERATOR" && additionalScreening.length > 0 && (
+        <section className="mt-9" aria-labelledby="screening-heading" data-testid="dashboard-screening-queue">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="screening-heading" className="text-lg leading-8 font-semibold">{t("Document screening queue")}</h2>
+            <Button asChild variant="ghost"><Link href="/applications?status=SUBMITTED">{t("View applications")}<ArrowRight aria-hidden="true" /></Link></Button>
+          </div>
+          <ApplicationTable applications={additionalScreening} />
+        </section>
+      )}
       <section className="mt-9" aria-labelledby="processed-heading">
         <h2
           id="processed-heading"

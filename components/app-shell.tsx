@@ -8,14 +8,14 @@ import {
   Settings2,
   LogOut,
   MapPin,
-  ShieldCheck,
   ChevronRight,
   Menu,
-  Plus,
+  UserRound,
 } from "lucide-react";
 import { NavLink } from "@/components/nav-link";
 import { Brand } from "@/components/brand";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { WorkspaceTitle, WorkspaceAddAction } from "@/components/workspace-title";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/login/actions";
 import { canAccessPath, ROLE_LABELS } from "@/lib/roles";
@@ -59,73 +59,48 @@ export async function AppShell({
   return (
     <div className="min-h-svh min-w-0 lg:pl-64">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-y-auto border-r border-border bg-white lg:flex">
-        <Link href="/dashboard" className="px-7 py-8">
+        <Link href="/dashboard" className="border-b border-border px-6 py-6">
           <Brand />
         </Link>
-        <p className="px-7 pt-2 pb-4 text-xs leading-7 font-semibold text-muted-foreground">
+        <p className="px-6 pt-6 pb-3 text-xs leading-7 font-medium text-muted-foreground">
           {t("Officer workspace")}
         </p>
         <nav aria-label={t("Main navigation")} className="space-y-1 px-4">
           {navItems}
         </nav>
-        <div className="mx-5 mt-auto mb-5 rounded-xl bg-[#12384b] p-4 text-white">
-          <ShieldCheck
-            className="mb-3 size-5 text-teal-200"
-            aria-hidden="true"
-          />
-          <p className="text-sm leading-7 font-medium">
-            {t("Secure workspace")}
-          </p>
-          <p className="mt-2 text-xs leading-7 text-slate-200">
-            {t("Access follows your assigned role and jurisdiction.")}
-          </p>
+        <div className="mt-auto border-t border-border p-6 text-sm leading-7 text-muted-foreground">
+          <MapPin className="mb-2 size-4 text-primary" aria-hidden="true" />
+          <p className="font-medium text-foreground">{locationLabel(profile.taluk, locale)}</p>
+          <p>{locationLabel(profile.district, locale)} · {t("District")}</p>
         </div>
-        <form action={logout} className="border-t border-border p-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-          >
-            <LogOut />
-            {t("Sign out")}
-          </Button>
-        </form>
       </aside>
       <header className="border-b border-border bg-white px-4 py-4 sm:px-8">
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
           <Link href="/dashboard" className="lg:hidden">
             <Brand />
           </Link>
-          <div className="hidden items-center gap-2 text-xs leading-7 text-muted-foreground lg:flex">
-            <MapPin
-              className="size-4 shrink-0 text-primary"
-              aria-hidden="true"
-            />
-            <span>
-              {locationLabel(profile.district, locale)} · {t("District")}
-            </span>
-            <span aria-hidden="true">/</span>
-            <span>
-              {locationLabel(profile.taluk, locale)} · {t("Taluk")}
-            </span>
+          <div className="hidden lg:block">
+            <WorkspaceTitle />
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-4 lg:ml-auto">
-            {profile.role === "OPERATOR" && (
-              <Button asChild>
-                <Link href="/applications/new">
-                  <Plus aria-hidden="true" />
-                  {t("Add application")}
-                </Link>
-              </Button>
-            )}
+          <div className="flex min-w-0 flex-wrap items-center gap-3 lg:ml-auto">
+            {profile.role === "OPERATOR" && <WorkspaceAddAction />}
             <LanguageSwitcher />
-            <div className="min-w-0 border-l border-border pl-4">
+            <Button asChild variant="ghost" size="icon" className="sm:hidden">
+              <Link href="/settings" aria-label={t("Account details")} title={officerLabel(profile.full_name, locale)}><UserRound aria-hidden="true" /></Link>
+            </Button>
+            <Link href="/settings" title={t("Account details")} className="hidden min-w-0 rounded-lg border-l border-border py-1 pl-4 sm:block hover:text-primary">
               <p className="text-sm leading-7 font-semibold break-words">
                 {officerLabel(profile.full_name, locale)}
               </p>
               <p className="text-xs leading-7 text-muted-foreground">
                 {ROLE_LABELS[profile.role][locale]}
               </p>
-            </div>
+            </Link>
+            <form action={logout}>
+              <Button variant="ghost" size="icon" aria-label={t("Sign out")} title={t("Sign out")}>
+                <LogOut aria-hidden="true" />
+              </Button>
+            </form>
           </div>
         </div>
         <details
@@ -134,7 +109,8 @@ export async function AppShell({
         >
           <summary className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold">
             <Menu className="size-5 text-primary" aria-hidden="true" />
-            {t("Navigation")}
+            <span className="sr-only">{t("Navigation")}: </span>
+            <WorkspaceTitle />
             <ChevronRight className="ml-auto size-4" aria-hidden="true" />
           </summary>
           <nav
@@ -142,12 +118,6 @@ export async function AppShell({
             className="grid gap-1 border-t border-border p-2 sm:grid-cols-2"
           >
             {navItems}
-            <form action={logout} className="p-1">
-              <Button variant="ghost" className="min-h-12 w-full justify-start">
-                <LogOut />
-                {t("Sign out")}
-              </Button>
-            </form>
           </nav>
         </details>
       </header>
@@ -157,10 +127,6 @@ export async function AppShell({
       >
         {children}
       </main>
-      <footer className="mx-4 flex flex-wrap justify-between gap-2 border-t border-border py-5 text-xs leading-7 text-muted-foreground sm:mx-8 xl:mx-10">
-        <span>{t("SevaSathi · Kannada first")}</span>
-        <span>{t("Phase 5 · Demonstration · Fictional data only")}</span>
-      </footer>
     </div>
   );
 }

@@ -10,7 +10,7 @@ export async function PriorityGuide() {
     <details className="group rounded-xl border border-border bg-white text-sm">
       <summary className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl p-4 font-medium focus-visible:outline-offset-2">
         <Info className="size-4 shrink-0 text-primary" />
-        {t("Demo priority rules")}
+        {t("How priority is calculated")}
         <span
           className="ml-auto text-primary group-open:rotate-45"
           aria-hidden="true"
@@ -21,7 +21,7 @@ export async function PriorityGuide() {
       <div className="space-y-3 border-t border-border p-4 text-xs leading-7 text-muted-foreground">
         <p className="font-medium text-foreground">
           {t(
-            "Configurable demo thresholds, not official government deadlines.",
+            "Targets are configured for this workspace; they are not statutory deadlines.",
           )}
         </p>
         <ul className="list-disc space-y-2 pl-5">
@@ -56,7 +56,6 @@ export async function PriorityGuide() {
             )}
           </li>
         </ul>
-        <p>{t("An administrator can change the demo thresholds.")}</p>
       </div>
     </details>
   );

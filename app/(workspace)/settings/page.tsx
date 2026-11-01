@@ -28,7 +28,6 @@ export default async function SettingsPage({
   return (
     <>
       <PageHeading
-        eyebrow={t("Account & access")}
         title={t("Account details")}
         description={t("Your officer profile and security details.")}
       />

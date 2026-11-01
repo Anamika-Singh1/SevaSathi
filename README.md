@@ -112,6 +112,8 @@ Dates use `Asia/Kolkata`, currency uses INR, and controls provide wrapping, keyb
 
 Database-backed display labels also follow the locale: certificate/document types, Mysuru jurisdiction labels, demo officer names, the twelve supplied demo applicant names, demo villages, purposes and the supplied bilingual demo notes/actions/report. These use explicit reviewed mappings in `lib/i18n/records.ts`; switching language never rewrites a stored name, note, jurisdiction, filter value or audit record. Unknown names and free text remain exactly as entered, with an optional Gemini reading translation on application details. See [translation verification](docs/TRANSLATION_VERIFICATION.md).
 
+The refined officer workspace uses compact actionable metrics, an attention queue without repeated screening entries, current-page navigation, marked required fields, a persisted-case creation confirmation, adjacent workflow/AI panels and a connected audit timeline. Development and assignment captions have been removed from the working screens; a concise login disclosure retains the demonstration context. See [final polish and validation](docs/FINAL_POLISH.md). Run `npm run test:ai:local -- --all` to include every local integration and browser scenario.
+
 ## Technology stack
 
 | Layer | Technology |

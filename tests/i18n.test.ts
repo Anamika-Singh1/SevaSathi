@@ -130,7 +130,7 @@ test("validation, workflow and AI failures follow the selected language without 
   );
   assert.equal(
     priorityReason("3 ದಿನ ಗುರಿ ಮೀರಿದೆ / day(s) past demo target", "en"),
-    "3 days past demo target",
+    "3 days past target date",
   );
   assert.equal(
     priorityReason("Officer entered / free text", "kn"),

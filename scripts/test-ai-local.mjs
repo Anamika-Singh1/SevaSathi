@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, openSync, closeSync, mkdirSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, openSync, closeSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { parseEnv } from 'node:util';
 import { randomBytes } from 'node:crypto';
@@ -64,8 +64,11 @@ try {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   assert.ok(ready, 'Local verification server did not become ready.');
-  run(['node_modules/tsx/dist/cli.mjs', '--test', '--test-concurrency=1', 'tests/integration/ai.test.ts', 'tests/integration/workflow.test.ts']);
-  run(['node_modules/@playwright/test/cli.js', 'test', 'tests/browser/phase-three.spec.ts', 'tests/browser/phase-four.spec.ts', 'tests/browser/phase-five.spec.ts', 'tests/browser/phase-six.spec.ts', 'tests/browser/reading-view.spec.ts']);
+  const all = process.argv.includes('--all');
+  const integration = all ? readdirSync('tests/integration').filter(name => name.endsWith('.test.ts')).sort().map(name => `tests/integration/${name}`)
+    : ['tests/integration/ai.test.ts', 'tests/integration/workflow.test.ts'];
+  run(['node_modules/tsx/dist/cli.mjs', '--test', '--test-concurrency=1', ...integration]);
+  run(['node_modules/@playwright/test/cli.js', 'test', ...(all ? [] : ['tests/browser/phase-three.spec.ts', 'tests/browser/phase-four.spec.ts', 'tests/browser/phase-five.spec.ts', 'tests/browser/phase-six.spec.ts', 'tests/browser/reading-view.spec.ts'])]);
 } finally {
   if (server.exitCode === null) {
     const closed = new Promise(resolve => server.once('exit', resolve));

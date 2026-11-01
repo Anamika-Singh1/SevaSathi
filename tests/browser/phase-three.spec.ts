@@ -313,7 +313,10 @@ test("four officers complete a manual case and return/resume another; a lost res
           name: "Application sections",
         })
         .getByRole("link"),
-    ).toHaveCount(6);
+    ).toHaveCount(8);
+    const missingTargets = await page.getByRole("navigation", { name: "Application sections" }).getByRole("link").evaluateAll(links =>
+      links.map(link => link.getAttribute("href") ?? "").filter(href => !href.startsWith("#") || !document.getElementById(href.slice(1))));
+    expect(missingTargets, "Every case section link reaches an existing section").toEqual([]);
     await expect(
       page.getByTestId("workflow-history").locator(":scope > li").first(),
     ).toHaveAttribute("data-event-type", "APPLICATION_CREATED");
@@ -342,7 +345,7 @@ test("four officers complete a manual case and return/resume another; a lost res
     await page
       .locator('[name="reason"]')
       .fill("ನಿವಾಸದ ದಾಖಲೆ ಸ್ಪಷ್ಟೀಕರಣ ಅಗತ್ಯವಾಗಿದೆ.");
-    await page.getByRole("button", { name: /^Return$/ }).click();
+    await page.getByRole("button", { name: "Return for clarification", exact: true }).click();
     await saved(page);
     expect((await work(second)).clarification_pending).toBe(true);
     expect((await work(second)).return_to_stage).toBe("SUBMITTED");

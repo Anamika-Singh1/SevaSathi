@@ -17,12 +17,12 @@ export const STATUS: Record<
   UNDER_REVIEW: {
     kn: "ಪ್ರಕರಣ ಪರಿಶೀಲನೆ",
     en: "Caseworker review",
-    tone: "bg-violet-50 text-violet-800 ring-violet-200",
+    tone: "bg-blue-50 text-blue-800 ring-blue-200",
   },
   PENDING_APPROVAL: {
     kn: "ಅಂತಿಮ ನಿರ್ಧಾರ",
     en: "Final decision",
-    tone: "bg-orange-50 text-orange-800 ring-orange-200",
+    tone: "bg-teal-50 text-teal-900 ring-teal-200",
   },
   APPROVED: {
     kn: "ಅನುಮೋದಿಸಲಾಗಿದೆ",

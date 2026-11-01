@@ -21,7 +21,7 @@ export function CardHeader({
     <div
       data-slot="card-header"
       className={cn(
-        "flex flex-col gap-2 border-b border-border px-6 py-5",
+        "flex flex-col gap-2 border-b border-border px-4 py-4 sm:px-6 sm:py-5",
         className,
       )}
       {...props}
@@ -33,6 +33,6 @@ export function CardContent({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="card-content" className={cn("p-6", className)} {...props} />
+    <div data-slot="card-content" className={cn("p-4 sm:p-6", className)} {...props} />
   );
 }

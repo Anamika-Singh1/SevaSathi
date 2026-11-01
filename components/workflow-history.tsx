@@ -25,7 +25,7 @@ export async function WorkflowHistory({
   const { t, locale } = await getI18n();
 
   return (
-    <ol className="space-y-6" data-testid="workflow-history">
+    <ol className="ml-1.5" data-testid="workflow-history">
       {events.map((event) => {
         const metadata =
           event.metadata &&
@@ -83,11 +83,11 @@ export async function WorkflowHistory({
         return (
           <li
             key={event.id}
-            className="flex gap-3"
+            className="relative border-l border-border pb-7 pl-6 last:border-transparent last:pb-0"
             data-event-type={event.event_type}
             data-event-sequence={event.sequence}
           >
-            <Circle className="mt-2 size-3 shrink-0 fill-teal-100 text-primary" />
+            <Circle aria-hidden="true" className="absolute top-2 -left-1.5 size-3 fill-teal-100 text-primary ring-4 ring-white" />
             <div className="min-w-0">
               <p className="text-sm leading-8 font-medium">
                 {eventLabel(event.event_type, locale)}
@@ -173,7 +173,7 @@ export async function WorkflowHistory({
               </ul>
               {typeof note === "string" && note && (
                 <p className="mt-2 border-l-2 border-primary/25 pl-3 text-sm leading-8 whitespace-pre-wrap">
-                  {t("Reason / note:")}
+                  <span className="block text-xs font-medium text-muted-foreground">{t("Reason / note:")}</span>
                   {note}
                 </p>
               )}

@@ -104,7 +104,7 @@ export function priorityReason(reason: string, locale: Language) {
   const numeric: [RegExp, MessageKey][] = [
     [
       /^(\d+) ದಿನ ಗುರಿ ಮೀರಿದೆ \/ day\(s\) past demo target$/,
-      "{count} days past demo target",
+      "{count} days past target date",
     ],
     [
       /^(\d+) ದಿನ ಈ ಹಂತದಲ್ಲಿ ಬಾಕಿ \/ day\(s\) waiting in this stage$/,
@@ -122,8 +122,8 @@ export function priorityReason(reason: string, locale: Language) {
   const fixed: Record<string, MessageKey> = {
     "ಪ್ರಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ / Processing completed": "Processing completed",
     "ಗುರಿ ದಿನಾಂಕ ಸಮೀಪಿಸಿದೆ / Demo target approaching":
-      "Demo target approaching",
-    "ಸಾಮಾನ್ಯ ಸರತಿ / Within demo thresholds": "Within demo thresholds",
+      "Target date approaching",
+    "ಸಾಮಾನ್ಯ ಸರತಿ / Within demo thresholds": "Routine processing",
   };
   return fixed[reason] ? t(fixed[reason]) : reason;
 }

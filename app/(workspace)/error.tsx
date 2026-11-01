@@ -15,7 +15,7 @@ export default function WorkspaceError({ reset }: { reset: () => void }) {
       <p className="mt-3 text-sm leading-7 text-muted-foreground">
         <span lang={locale}>
           {t(
-            "Unable to load data. Try again, or ask your administrator to check Supabase connectivity and migrations.",
+            "We could not load this page. Retry, or contact your administrator if the problem continues.",
           )}
         </span>
       </p>
