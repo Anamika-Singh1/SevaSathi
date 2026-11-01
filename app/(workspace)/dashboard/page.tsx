@@ -4,12 +4,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Plus,
-  Files,
-  MapPinned,
-  ClipboardCheck,
-  CircleCheck,
-  AlarmClock,
-  ListChecks,
   ArrowUpRight,
 } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
@@ -46,8 +40,6 @@ export default async function DashboardPage({
       label: t("Pending applications"),
       en: "Total pending",
       count: stats.pending,
-      icon: Files,
-      tone: "bg-blue-50 text-blue-800",
       href: "view=pending",
       hint: t("All active stages"),
     },
@@ -55,8 +47,6 @@ export default async function DashboardPage({
       label: t("Immediate attention"),
       en: "Immediate attention",
       count: stats.attention,
-      icon: ListChecks,
-      tone: "bg-rose-50 text-rose-800",
       href: "view=attention&sort=priority",
       hint: t("Immediate priority"),
     },
@@ -64,8 +54,6 @@ export default async function DashboardPage({
       label: t("Field verification pending"),
       en: "Field verification pending",
       count: stats.field,
-      icon: MapPinned,
-      tone: "bg-amber-50 text-amber-900",
       href: "status=FIELD_VERIFICATION",
       hint: t("Field stage"),
     },
@@ -73,8 +61,6 @@ export default async function DashboardPage({
       label: t("Final review pending"),
       en: "Final review pending",
       count: stats.review,
-      icon: ClipboardCheck,
-      tone: "bg-blue-50 text-blue-800",
       href: "view=final-review",
       hint: t("Review + approval"),
     },
@@ -82,8 +68,6 @@ export default async function DashboardPage({
       label: t("Overdue applications"),
       en: "Overdue applications",
       count: stats.overdue,
-      icon: AlarmClock,
-      tone: "bg-amber-50 text-amber-900",
       href: "overdue=yes&sort=target",
       hint: t("Past target date"),
     },
@@ -91,8 +75,6 @@ export default async function DashboardPage({
       label: t("Recently processed"),
       en: "Recently processed",
       count: stats.recent,
-      icon: CircleCheck,
-      tone: "bg-teal-50 text-teal-900",
       href: "view=recent&sort=recent",
       hint: t("Last {count} days", { count: settings.recent_processed_days }),
     },
@@ -131,35 +113,28 @@ export default async function DashboardPage({
           {t("Your role does not have access to that page.")}
         </p>
       )}
-      <div
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4"
-        data-testid="dashboard-metrics"
-      >
-        {metrics.map(({ label, en, count, icon: Icon, tone, href, hint }) => (
+      <Card className="overflow-hidden">
+        <div className="border-b border-border bg-slate-50 px-4 py-3 sm:px-5">
+          <h2 className="text-base leading-8 font-semibold text-primary">{t("Application summary")}</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 xl:grid-cols-6" data-testid="dashboard-metrics">
+        {metrics.map(({ label, en, count, href, hint }) => (
           <Link
             key={en}
             href={`/applications?${href}`}
-            className="group min-w-0 rounded-xl"
+            className="group min-w-0 bg-white p-4 transition-colors hover:bg-accent focus-visible:relative focus-visible:z-10 sm:p-5"
           >
-            <Card className="h-full p-4 transition-colors group-hover:border-primary/50 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="text-sm leading-7 font-medium text-muted-foreground">{label}</h2>
-                <span className={`hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex ${tone}`}>
-                  <Icon className="size-4" aria-hidden="true" />
-                </span>
+              <div className="flex items-center justify-between gap-2">
+                <p className={`text-[32px] leading-tight font-semibold tabular-nums ${count > 0 && (en === "Immediate attention" || en === "Overdue applications") ? "text-rose-800" : "text-primary"}`} data-metric={en}>{count}</p>
+                <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden="true" />
               </div>
-              <div className="mt-2 flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-3xl leading-relaxed font-semibold tabular-nums" data-metric={en}>{count}</p>
-                  <p className="text-xs leading-7 text-muted-foreground">{hint}</p>
-                </div>
-                <ArrowUpRight className="mb-1 size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-              </div>
-            </Card>
+              <h3 className="mt-3 text-sm leading-7 font-medium">{label}</h3>
+              <p className={en === "Recently processed" ? "mt-1 text-xs leading-7 text-muted-foreground" : "sr-only"}>{hint}</p>
           </Link>
         ))}
-      </div>
-      <section className="mt-10" aria-labelledby="attention-heading">
+        </div>
+      </Card>
+      <section className="mt-7" aria-labelledby="attention-heading">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2

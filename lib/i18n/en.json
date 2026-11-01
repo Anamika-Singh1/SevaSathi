@@ -553,5 +553,6 @@
   "File viewing is unavailable in this workspace.": "File viewing is unavailable in this workspace.",
   "{count} days past target date": "{count} days past target date",
   "Target date approaching": "Target date approaching",
-  "Routine processing": "Routine processing"
+  "Routine processing": "Routine processing",
+  "Application summary": "Application summary"
 }

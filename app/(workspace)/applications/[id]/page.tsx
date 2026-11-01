@@ -20,6 +20,7 @@ import {
   VERIFICATION_CHECKS,
   REVIEW_CHECKS,
   VERIFICATION_STATUS,
+  assignedActorId,
 } from "@/lib/workflow";
 import { getApplication } from "@/services/applications";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -47,6 +48,13 @@ export default async function ApplicationPage({
     officers,
   } = record;
   const { profile } = await requireOfficer();
+  const responsibleId = assignedActorId(application, workflow) ?? workflow.decided_by;
+  const responsible = officers.find(person => person.id === responsibleId);
+  const caseFacts: { label: string; value: string; attention?: boolean }[] = [
+    { label: t("Declared annual income"), value: formatCurrency(application.annual_income, locale) },
+    { label: t("Target date"), value: formatDate(application.effective_target_date, locale), attention: application.is_overdue },
+    { label: t("Responsible officer"), value: responsible ? officerLabel(responsible.full_name, locale) : t(application.is_pending ? "Not assigned" : "Not recorded") },
+  ];
   const checks = (value: unknown) =>
     value && typeof value === "object"
       ? (value as Record<string, boolean>)
@@ -94,28 +102,18 @@ export default async function ApplicationPage({
     <>
       <Link
         href="/applications"
-        className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-white px-4 text-sm font-medium text-primary transition-colors hover:bg-accent"
+        className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
       >
         <ArrowLeft className="size-4 shrink-0" />
         {t("Back to applications")}
       </Link>
       <PageHeading
-        eyebrow={t("Application details")}
         title={application.reference_number}
         description={`${demoRecordText(application.applicant_name, locale, application.is_demo)} · ${locationLabel(application.village, locale)}`}
       >
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={application.status} />
           <PriorityBadge priority={application.priority} />
-          <span
-            className={`rounded-lg border px-3 py-2 text-xs leading-6 ${application.is_overdue ? "border-rose-200 bg-rose-50 text-rose-900" : "border-border bg-white text-muted-foreground"}`}
-          >
-            {t("Target date")}
-            <br />
-            <strong className="font-semibold">
-              {formatDate(application.effective_target_date, locale)}
-            </strong>
-          </span>
         </div>
       </PageHeading>
       {query.created === "1" && application.status === "SUBMITTED" && events.some(event => event.event_type === "APPLICATION_CREATED") && (
@@ -124,9 +122,17 @@ export default async function ApplicationPage({
           {t("Application created. Document screening is ready.")}
         </p>
       )}
+      <dl className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border bg-white p-4 sm:grid-cols-3 sm:p-5">
+        {caseFacts.map(({ label, value, attention }, index) => (
+          <div key={label} className={`min-w-0 ${index === 2 ? "col-span-2 sm:col-span-1" : ""}`}>
+            <dt className="text-xs leading-7 text-muted-foreground">{label}</dt>
+            <dd className={`mt-1 text-sm leading-8 font-semibold ${attention ? "text-rose-800" : "text-foreground"}`}>{value}</dd>
+          </div>
+        ))}
+      </dl>
       <nav
         aria-label={t("Application sections")}
-        className="mb-6 flex flex-wrap gap-1 rounded-xl border border-border bg-white p-2"
+        className="mb-6 flex flex-wrap gap-x-3 gap-y-1 border-b border-border pb-3"
       >
         {[
           ["workflow-actions", t("Workflow actions")],
@@ -141,9 +147,9 @@ export default async function ApplicationPage({
           <a
             key={id}
             href={`#${id}`}
-            className="flex min-h-11 min-w-0 items-center rounded-lg px-3 py-2 text-sm leading-7 text-primary transition-colors hover:bg-accent"
+            className="flex min-h-11 min-w-0 max-w-full items-center rounded px-2 py-2 text-sm leading-7 text-primary underline-offset-4 transition-colors hover:bg-accent hover:underline"
           >
-            <span className="font-semibold">{label}</span>
+            <span className="font-medium">{label}</span>
           </a>
         ))}
       </nav>

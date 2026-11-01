@@ -22,9 +22,9 @@ export function WorkspaceTitle() {
   </span>;
 }
 
-export function WorkspaceAddAction() {
+export function WorkspaceAddAction({ className }: { className?: string }) {
   const pathname = usePathname();
   const { t } = useI18n();
   if (["/dashboard", "/applications", "/applications/new"].includes(pathname)) return null;
-  return <Button asChild><Link href="/applications/new"><Plus aria-hidden="true" />{t("Add application")}</Link></Button>;
+  return <Button asChild className={className}><Link href="/applications/new"><Plus aria-hidden="true" />{t("Add application")}</Link></Button>;
 }

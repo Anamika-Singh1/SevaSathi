@@ -46,13 +46,13 @@ export default async function LoginPage({
       className="grid min-h-svh lg:grid-cols-[1.05fr_1fr]"
     >
       {params.loggedOut === "1" && <ClearSignedOutDrafts />}
-      <section className="flex flex-col justify-between bg-[#153848] px-6 py-6 text-white sm:px-12 lg:min-h-svh lg:px-16 lg:py-10">
+      <section className="portal-header flex flex-col justify-between px-6 py-6 text-white sm:px-12 lg:min-h-svh lg:px-16 lg:py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Brand dark />
           <LanguageSwitcher />
         </div>
         <div className="my-16 hidden max-w-lg lg:block">
-          <FileCheck2 className="mb-6 size-9 text-teal-200" aria-hidden="true" />
+          <FileCheck2 className="mb-6 size-9 text-blue-200" aria-hidden="true" />
           <h2 className="text-4xl leading-[1.65] font-semibold tracking-tight">{t("Income certificate workspace")}</h2>
           <p className="mt-4 text-base leading-8 text-slate-200">{t("Track applications, record evidence and make informed decisions.")}</p>
           <ol className="mt-10 space-y-5 border-t border-white/20 pt-8">
@@ -68,10 +68,10 @@ export default async function LoginPage({
           <span lang={locale}>{t("Karnataka · Revenue workflow")}</span>
         </div>
       </section>
-      <section className="flex flex-col justify-center px-7 py-12 sm:px-14 lg:px-20">
-        <div className="mx-auto w-full max-w-md">
-          <div className="mb-7 flex size-12 items-center justify-center rounded-xl border border-border bg-white text-primary">
-            <LockKeyhole className="size-5" />
+      <section className="flex flex-col justify-center px-4 py-8 sm:px-10 lg:px-14">
+        <div className="mx-auto w-full max-w-lg rounded-xl border border-border bg-white p-5 sm:p-8 lg:p-10">
+          <div className="mb-5 flex size-10 items-center justify-center rounded-lg bg-accent text-primary">
+            <LockKeyhole className="size-5" aria-hidden="true" />
           </div>
           <h1 className="text-3xl leading-relaxed font-semibold">
             {t("Welcome back")}

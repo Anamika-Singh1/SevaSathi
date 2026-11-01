@@ -125,24 +125,24 @@ export async function ApplicationTable({
           <caption className="sr-only">
             {t("Applications with priority reasons and target dates")}
           </caption>
-          <thead className="border-b border-border bg-slate-50 text-xs leading-6 text-muted-foreground">
+          <thead className="border-b border-border bg-slate-50 text-xs leading-6 text-foreground">
             <tr>
-              <th scope="col" className="w-[16%] px-4 py-4 font-medium">
+              <th scope="col" className="w-[16%] px-4 py-3 font-semibold">
                 {t("Application number")}
               </th>
-              <th scope="col" className="w-[19%] px-4 py-4 font-medium">
+              <th scope="col" className="w-[19%] px-4 py-3 font-semibold">
                 {t("Applicant / village")}
               </th>
-              <th scope="col" className="w-[18%] px-4 py-4 font-medium">
+              <th scope="col" className="w-[18%] px-4 py-3 font-semibold">
                 {t("Current stage")}
               </th>
-              <th scope="col" className="w-[22%] px-4 py-4 font-medium">
+              <th scope="col" className="w-[22%] px-4 py-3 font-semibold">
                 {t("Priority & reason")}
               </th>
-              <th scope="col" className="w-[9%] px-3 py-4 font-medium">
+              <th scope="col" className="w-[9%] px-3 py-3 font-semibold">
                 {t("Days pending")}
               </th>
-              <th scope="col" className="w-[16%] px-4 py-4 font-medium">
+              <th scope="col" className="w-[16%] px-4 py-3 font-semibold">
                 {t("Target date")}
               </th>
             </tr>
@@ -151,27 +151,19 @@ export async function ApplicationTable({
             {applications.map((application) => (
               <tr
                 key={application.id}
-                className="align-top transition-colors hover:bg-slate-50/80"
+                className="align-middle transition-colors hover:bg-slate-50/80"
               >
-                <td className="px-4 py-5">
+                <td className="px-4 py-4">
                   <Link
                     href={`/applications/${application.id}`}
-                    className="inline-flex min-h-11 items-center break-all font-mono text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                    className="inline-flex min-h-11 max-w-full items-center gap-1 font-mono text-sm font-semibold text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary"
+                    title={t("View details for {number}", { number: application.reference_number })}
                   >
-                    {application.reference_number}
-                  </Link>
-                  <Link
-                    href={`/applications/${application.id}`}
-                    className="flex min-h-11 items-center gap-1 text-xs text-primary"
-                    aria-label={t("View details for {number}", {
-                      number: application.reference_number,
-                    })}
-                  >
-                    {t("Details")}
-                    <ArrowUpRight className="size-3 shrink-0" />
+                    <span className="min-w-0 break-all">{application.reference_number}</span>
+                    <ArrowUpRight className="size-3 shrink-0" aria-hidden="true" />
                   </Link>
                 </td>
-                <td className="px-4 py-5">
+                <td className="px-4 py-4">
                   <p className="leading-7 font-medium">
                     {demoRecordText(application.applicant_name, locale, application.is_demo)}
                   </p>
@@ -179,7 +171,7 @@ export async function ApplicationTable({
                     {locationLabel(application.village, locale)}
                   </p>
                 </td>
-                <td className="px-4 py-5">
+                <td className="px-4 py-4">
                   <StatusBadge status={application.status} />
                   {application.clarification_pending && (
                     <p className="mt-2 text-xs leading-7 text-amber-900">
@@ -187,17 +179,15 @@ export async function ApplicationTable({
                     </p>
                   )}
                 </td>
-                <td className="px-4 py-5">
+                <td className="px-4 py-4">
                   <PriorityBadge priority={application.priority} />
                   <PriorityReasons application={application} />
                 </td>
-                <td className="px-3 py-5 font-semibold tabular-nums">
+                <td className="px-3 py-4 font-semibold tabular-nums">
                   {application.days_pending}
-                  <span className="mt-2 block text-xs font-normal text-muted-foreground">
-                    {application.is_pending ? t("Pending") : t("Total")}
-                  </span>
+                  {!application.is_pending && <span className="mt-1 block text-xs font-normal text-muted-foreground">{t("Total")}</span>}
                 </td>
-                <td className="px-4 py-5 text-xs leading-6">
+                <td className="px-4 py-4 text-xs leading-6">
                   <span
                     className={
                       application.is_overdue ? "font-medium text-rose-800" : ""

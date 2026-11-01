@@ -553,5 +553,6 @@
   "File viewing is unavailable in this workspace.": "ಈ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಕಡತವನ್ನು ವೀಕ್ಷಿಸುವ ಸೌಲಭ್ಯವಿಲ್ಲ.",
   "{count} days past target date": "ಗುರಿ ದಿನಾಂಕವನ್ನು {count} ದಿನ ಮೀರಿದೆ",
   "Target date approaching": "ಗುರಿ ದಿನಾಂಕ ಸಮೀಪಿಸುತ್ತಿದೆ",
-  "Routine processing": "ಸಾಮಾನ್ಯ ಪ್ರಕ್ರಿಯೆ"
+  "Routine processing": "ಸಾಮಾನ್ಯ ಪ್ರಕ್ರಿಯೆ",
+  "Application summary": "ಅರ್ಜಿಗಳ ಸಾರಾಂಶ"
 }

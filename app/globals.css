@@ -3,22 +3,22 @@
 
 :root {
   --background: #f4f6f8;
-  --foreground: #192f3d;
+  --foreground: #1c3048;
   --card: #ffffff;
   --card-foreground: #172b3a;
-  --primary: #0f5962;
+  --primary: #234e78;
   --primary-foreground: #ffffff;
-  --secondary: #e9f1ec;
-  --secondary-foreground: #234c3f;
+  --secondary: #edf2f7;
+  --secondary-foreground: #234e78;
   --muted: #f0f3f5;
-  --muted-foreground: #526574;
-  --accent: #eaf3f4;
-  --accent-foreground: #0f5962;
+  --muted-foreground: #57667c;
+  --accent: #eaf0f7;
+  --accent-foreground: #234e78;
   --destructive: #b13d3d;
-  --border: #dce4e9;
+  --border: #dce3eb;
   --input: #c6d1d9;
-  --ring: #0f5962;
-  --radius: 0.75rem;
+  --ring: #234e78;
+  --radius: 0.5rem;
 }
 
 @theme inline {
@@ -104,13 +104,59 @@
     cursor: pointer;
   }
   ::selection {
-    background: #d5e8dc;
-    color: #12382c;
+    background: #dce7ff;
+    color: #173e8c;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 4px;
   }
+}
+
+.portal-header {
+  background: #173653;
+  color: #fff;
+}
+.portal-header :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+.portal-header [data-testid="language-switcher"] [role="alert"] {
+  color: #fff;
+  background: #812e39;
+  border: 1px solid #f4bcc3;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+}
+.portal-sidebar .workspace-nav-link {
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+}
+.portal-sidebar .workspace-nav-link[aria-current="page"] {
+  background: #eaf0f7;
+  color: #173653;
+  border-left-color: #234e78;
+  box-shadow: none;
+}
+
+html[lang="kn"] body {
+  font-family: var(--font-kannada), "Nirmala UI", sans-serif;
+  line-height: 1.9;
+}
+html[lang="kn"] :is(h1, h2, h3, .tracking-tight, .tracking-wide) {
+  letter-spacing: normal;
+}
+html[lang="kn"] .text-xs {
+  font-size: 0.875rem;
+  line-height: 1.9;
+}
+html[lang="kn"] .text-sm {
+  font-size: 1rem;
+  line-height: 1.9;
+}
+html[lang="kn"] [data-slot="card-header"] h2 {
+  font-size: 1.125rem;
+  line-height: 1.9;
 }
 
 @media (prefers-reduced-motion: reduce) {

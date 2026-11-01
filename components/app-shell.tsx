@@ -10,7 +10,6 @@ import {
   MapPin,
   ChevronRight,
   Menu,
-  UserRound,
 } from "lucide-react";
 import { NavLink } from "@/components/nav-link";
 import { Brand } from "@/components/brand";
@@ -46,7 +45,7 @@ export async function AppShell({
       <NavLink
         key={href}
         href={href}
-        className="group flex min-h-12 min-w-0 items-center gap-3 rounded-lg px-3 py-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
+        className="workspace-nav-link group flex min-h-12 min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
       >
         <Icon className="size-[18px] shrink-0" aria-hidden="true" />
         <span className="min-w-0 leading-7 font-medium">{t(label)}</span>
@@ -57,76 +56,59 @@ export async function AppShell({
       </NavLink>
     ));
   return (
-    <div className="min-h-svh min-w-0 lg:pl-64">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-y-auto border-r border-border bg-white lg:flex">
-        <Link href="/dashboard" className="border-b border-border px-6 py-6">
-          <Brand />
-        </Link>
-        <p className="px-6 pt-6 pb-3 text-xs leading-7 font-medium text-muted-foreground">
-          {t("Officer workspace")}
-        </p>
-        <nav aria-label={t("Main navigation")} className="space-y-1 px-4">
-          {navItems}
-        </nav>
-        <div className="mt-auto border-t border-border p-6 text-sm leading-7 text-muted-foreground">
-          <MapPin className="mb-2 size-4 text-primary" aria-hidden="true" />
-          <p className="font-medium text-foreground">{locationLabel(profile.taluk, locale)}</p>
-          <p>{locationLabel(profile.district, locale)} · {t("District")}</p>
-        </div>
-      </aside>
-      <header className="border-b border-border bg-white px-4 py-4 sm:px-8">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-          <Link href="/dashboard" className="lg:hidden">
-            <Brand />
-          </Link>
-          <div className="hidden lg:block">
+    <div className="min-h-svh min-w-0">
+      <header className="portal-header border-b-[3px] border-[#41698e] px-4 py-3 lg:px-0 lg:py-4">
+        <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-3 lg:gap-0">
+          <Link href="/dashboard" className="shrink-0 lg:w-60 lg:px-6"><Brand dark /></Link>
+          <div className="hidden min-w-0 border-l border-white/20 px-8 lg:block">
             <WorkspaceTitle />
+            <p className="mt-1 text-xs leading-7 text-slate-200">
+              {locationLabel(profile.taluk, locale)} · {t("Taluk")}
+            </p>
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-3 lg:ml-auto">
-            {profile.role === "OPERATOR" && <WorkspaceAddAction />}
+          <div className="flex min-w-0 flex-wrap items-center gap-3 lg:ml-auto lg:pr-7">
+            {profile.role === "OPERATOR" && <WorkspaceAddAction className="border border-white/30 bg-white text-primary hover:bg-slate-100" />}
             <LanguageSwitcher />
-            <Button asChild variant="ghost" size="icon" className="sm:hidden">
-              <Link href="/settings" aria-label={t("Account details")} title={officerLabel(profile.full_name, locale)}><UserRound aria-hidden="true" /></Link>
-            </Button>
-            <Link href="/settings" title={t("Account details")} className="hidden min-w-0 rounded-lg border-l border-border py-1 pl-4 sm:block hover:text-primary">
-              <p className="text-sm leading-7 font-semibold break-words">
-                {officerLabel(profile.full_name, locale)}
-              </p>
-              <p className="text-xs leading-7 text-muted-foreground">
-                {ROLE_LABELS[profile.role][locale]}
-              </p>
+            <Link href="/settings" title={t("Account details")} className="hidden min-w-0 rounded border-l border-white/25 py-1 pl-4 lg:block">
+              <p className="text-sm leading-7 font-semibold break-words">{officerLabel(profile.full_name, locale)}</p>
+              <p className="text-xs leading-7 text-slate-200">{ROLE_LABELS[profile.role][locale]}</p>
             </Link>
-            <form action={logout}>
-              <Button variant="ghost" size="icon" aria-label={t("Sign out")} title={t("Sign out")}>
+            <form action={logout} className="hidden lg:block">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" aria-label={t("Sign out")} title={t("Sign out")}>
                 <LogOut aria-hidden="true" />
               </Button>
             </form>
           </div>
         </div>
-        <details
-          className="mt-4 rounded-xl border border-border lg:hidden"
-          key={profile.role}
-        >
-          <summary className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold">
-            <Menu className="size-5 text-primary" aria-hidden="true" />
-            <span className="sr-only">{t("Navigation")}: </span>
-            <WorkspaceTitle />
-            <ChevronRight className="ml-auto size-4" aria-hidden="true" />
+        <details className="mt-3 rounded border border-white/25 lg:hidden" key={profile.role}>
+          <summary className="flex min-h-12 cursor-pointer items-center gap-2 rounded px-3 py-2 text-sm font-semibold">
+            <Menu className="size-5 shrink-0" aria-hidden="true" />
+            <span className="sr-only">{t("Navigation")}: </span><WorkspaceTitle />
+            <ChevronRight className="ml-auto size-4 shrink-0" aria-hidden="true" />
           </summary>
-          <nav
-            aria-label={t("Mobile navigation")}
-            className="grid gap-1 border-t border-border p-2 sm:grid-cols-2"
-          >
-            {navItems}
-          </nav>
+          <div className="border-t border-white/20 bg-white text-foreground">
+            <nav aria-label={t("Mobile navigation")} className="grid gap-1 p-2 sm:grid-cols-2">{navItems}</nav>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <NavLink href="/settings" className="min-w-0 rounded px-2 py-1 text-sm leading-7 font-medium">{officerLabel(profile.full_name, locale)}</NavLink>
+              <form action={logout}><Button variant="outline"><LogOut aria-hidden="true" />{t("Sign out")}</Button></form>
+            </div>
+          </div>
         </details>
       </header>
-      <main
-        id="main-content"
-        className="mx-auto min-w-0 max-w-[1720px] p-4 sm:p-8 xl:p-10"
-      >
-        {children}
-      </main>
+      <div className="mx-auto grid min-w-0 max-w-[1720px] lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="portal-sidebar hidden border-r border-border bg-white lg:block">
+          <div className="sticky top-0 flex min-h-[calc(100svh_-_108px)] flex-col py-6">
+            <p className="mb-4 px-6 text-sm leading-7 font-semibold text-primary">{t("Officer workspace")}</p>
+            <nav aria-label={t("Main navigation")} className="space-y-1 px-3">{navItems}</nav>
+            <div className="mx-5 mt-auto border-t border-border pt-5 text-sm leading-7 text-muted-foreground">
+              <MapPin className="mb-2 size-4 text-primary" aria-hidden="true" />
+              <p className="font-semibold text-foreground">{locationLabel(profile.taluk, locale)}</p>
+              <p>{locationLabel(profile.district, locale)} · {t("District")}</p>
+            </div>
+          </div>
+        </aside>
+        <main id="main-content" className="min-w-0 p-4 sm:p-7 xl:p-8">{children}</main>
+      </div>
     </div>
   );
 }

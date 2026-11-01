@@ -331,7 +331,7 @@ export function WorkflowPanel({
                   </span>{" "}
                   {entry[locale]}
                 </span>
-                <span className="block text-[11px] leading-7">
+                <span className="block text-xs leading-7">
                   {t(
                     current
                       ? "Current step"

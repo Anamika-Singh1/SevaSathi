@@ -1,5 +1,5 @@
 import { getI18n } from "@/lib/i18n/server";
-import { Sprout } from "lucide-react";
+import { FileCheck2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export async function Brand({ dark = false }: { dark?: boolean }) {
@@ -10,10 +10,10 @@ export async function Brand({ dark = false }: { dark?: boolean }) {
       <span
         className={cn(
           "flex size-11 items-center justify-center rounded-xl",
-          dark ? "bg-white/10 text-emerald-200" : "bg-primary text-white",
+          dark ? "bg-white/10 text-blue-200" : "bg-primary text-white",
         )}
       >
-        <Sprout className="size-6" aria-hidden="true" />
+        <FileCheck2 className="size-6" aria-hidden="true" />
       </span>
       <div>
         <span className="block text-xl font-bold tracking-tight">
