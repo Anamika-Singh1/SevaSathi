@@ -1,4 +1,5 @@
 import { STATUS } from "@/lib/status";
+import { demoApplicantSearchTerm } from "@/lib/i18n/records";
 
 export const PAGE_SIZE = 10;
 export const PRIORITY = {
@@ -66,12 +67,17 @@ export function applicationPageHref(filters: ApplicationFilters, page: number) {
 // Quote PostgREST grammar separately from SQL LIKE escaping. This keeps commas,
 // quotes, parentheses and wildcard characters in search input literal.
 export function applicationSearchExpression(search: string) {
-  const pattern = `%${search.replace(/[\\%_*]/g, "\\$&")}%`;
-  const quoted = `"${pattern.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  const quote = (value: string) => {
+    const pattern = `%${value.replace(/[\\%_*]/g, "\\$&")}%`;
+    return `"${pattern.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  };
+  const quoted = quote(search);
   const parts = [
     `reference_number.ilike.${quoted}`,
     `applicant_name.ilike.${quoted}`,
   ];
+  const demoAlias = demoApplicantSearchTerm(search);
+  if (demoAlias) parts.push(`and(is_demo.eq.true,applicant_name.ilike.${quote(demoAlias)})`);
   if (
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       search,

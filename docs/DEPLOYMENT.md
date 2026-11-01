@@ -1,6 +1,6 @@
 # Vercel deployment preparation
 
-Status checked on 30 October 2026: source is prepared for Vercel; **no deployment or application URL has been verified**. During preparation the public configuration was changed from local to hosted Supabase, but the expected hosted profile/role schema is unavailable and the administrator key still belongs to the local demo. No Gemini key or authenticated Vercel project/CLI session was available. Resolve [hosted login recovery](LOGIN_RECOVERY.md) before deployment. GitHub/Vercel/Supabase connections were offered; connection is not assumed.
+Status updated on 31 October 2026: source is prepared for Vercel; **no deployment or application URL has been verified**. The user reports successful execution of the original nine hosted setup parts and twelve fictional applications. Hosted UI login/dashboard success and operator intake remain unverified. The additional intake migration below is required after those nine parts. The earlier diagnosis found a mismatched local administrator key; use only matching hosted provisioning credentials. No Gemini key or authenticated Vercel project/CLI session was available during preparation. See [hosted login recovery](LOGIN_RECOVERY.md). GitHub/Vercel/Supabase connections were offered; connection is not assumed.
 
 ## Build configuration
 
@@ -33,12 +33,22 @@ Use a **dedicated fictional demo project**, separate from citizen or operational
    ```
 
    The project reference above is an explicit placeholder, not an existing hosted project. Review the selected reference before applying changes. For upgrades, apply pending committed migrations; never use a database reset on a live project. [Supabase migration guidance](https://supabase.com/docs/guides/deployment/database-migrations).
-3. Confirm all seven migrations are applied, including `20261030000600_security_review.sql` and `20261030000610_session_revocation.sql`. The session helper depends on the JWT's session ID and Auth session table; see [Supabase session guidance](https://supabase.com/docs/guides/auth/sessions). Keep RLS and RPC grants intact.
+3. Confirm all **nine migrations** are applied, including `20261030000600_security_review.sql`, `20261030000610_session_revocation.sql`, `20261031000100_application_intake.sql` and `20261031000200_complete_application_intake.sql`. The session helper depends on the JWT's session ID and Auth session table; see [Supabase session guidance](https://supabase.com/docs/guides/auth/sessions). Keep RLS and RPC grants intact.
 4. On a fresh demo, apply both configured seed files exactly once through the CLI command above. Verify the original twelve fictional applications before adding rehearsal cases. Later-stage seed examples intentionally do not invent historical manual sign-offs.
 5. Copy `.env.example` to ignored `.env.local` on the trusted workstation. Set the hosted URL, publishable key, server-only administrator key and four distinct demo passwords. Run `npm run demo:setup`. Provisioning resets those four passwords/seed assignments when rerun, so finish it before an evaluator session.
 6. Verify one active trusted profile for each role, the fictional Mysuru jurisdiction, the twelve seed records, the three original field assignments and workflow ownership. Do not infer hosted readiness from the existing local database.
 
 Supabase references: [password authentication](https://supabase.com/docs/guides/auth/passwords), [redirect URL configuration](https://supabase.com/docs/guides/auth/redirect-urls).
+
+### Upgrading the nine-part hosted setup
+
+The original `.qa/hosted-login-parts/01-core.sql` through `09-operator-and-seed.sql` install the original seven migrations and the restricted operator/fictional seed setup. They do **not** install the new application-entry RPC. After those parts succeed, apply the canonical `supabase/migrations/20261031000100_application_intake.sql` once, or run the prepared transactional wrapper `.qa/hosted-login-parts/10-application-intake.sql` once in the same project's SQL Editor. Do not rerun the fresh-only first part or reset the database.
+
+SQL Editor execution does not update Supabase CLI migration history. Before a later `db:push`, inspect the actual schema and synchronize history with `supabase migration repair --status applied` only for verified applied versions: the original seven until intake succeeds, then `20261031000100` as well. Marking the intake version applied before running it would cause the CLI to skip the required RPC. Keep the generated `.qa` files local; the canonical migrations belong in the repository.
+
+Then apply `supabase/migrations/20261031000200_complete_application_intake.sql` once (or its transactional SQL Editor wrapper `.qa/hosted-login-parts/11-complete-application-intake.sql`). Include version `20261031000200` in migration repair only after it succeeds. This adds the full form's application date, document receipts, notes and explicit screening/pending fields. A database with only the five-argument RPC cannot accept the full nine-argument request; apply both intake migrations in order. Use `supabase/diagnose-application-intake.sql` to inspect the actual schema, profile, RLS, grants and foreign keys without changing data.
+
+Once installed, an operator can choose **Add application** from any workspace page. District/taluk come from the active profile. Application, notes, document receipts, workflow ownership, audit and retry receipt commit together. New cases appear in the dashboard screening queue. Newly entered records have `is_demo=false`; the twelve seed fixtures have `is_demo=true`. Use fictional details throughout. Read [intake verification](ADD_APPLICATION_VERIFICATION.md) for exact state-column mapping, tests and remaining hosted checks.
 
 ## Vercel environment variables
 
@@ -83,6 +93,7 @@ These are **required future checks**, not results claimed by this preparation:
 - [ ] Wrong-role queues, profile/metadata role changes, cross-jurisdiction case access and wrong-assignment actions are denied.
 - [ ] All migrations, RLS policies, caller-rights views and constrained RPCs are present; signed-out token replay cannot approve/read a case.
 - [ ] The twelve seed records and officer assignments are verified before adding evaluator cases.
+- [ ] The intake migration is present; only the operator sees/uses **Add application**, invalid input is rejected, and a lost-response retry creates one case with its checklist and creation history.
 - [ ] Run `npm run demo:case` from the trusted, opted-in hosted demo setup and complete its four stages through the real UI; verify approval or rejection and exact history.
 - [ ] Complete a separate return/resume scenario; verify the correction destination and renewed sign-offs.
 - [ ] Confirmed decision retries create one terminal event; closed cases cannot be edited.
@@ -90,7 +101,7 @@ These are **required future checks**, not results claimed by this preparation:
 - [ ] Kannada/English toggle persists; dashboard/list/detail/decision controls work at 360/390px and desktop; check a physical phone if available.
 - [ ] Share the actual URL and four passwords privately, rehearse the five-minute demo and record remaining limits truthfully.
 
-Do not run the full mutation-capable test suite against operational data. Existing count-sensitive tests expect the original twelve-record fixture; run them before fresh evaluator cases or use a separate QA project. The three SQL helper commands target local Docker and are not hosted test runners.
+Do not run the full mutation-capable test suite against operational data. Existing count-sensitive tests expect the original twelve-record fixture; run them before operator-entered or fresh evaluator cases, or use a separate QA project. The four SQL helper commands, including `npm run test:intake:database`, target local Docker and are not hosted test runners. New intake test results must be recorded after execution rather than inferred from the earlier Phase 6 results.
 
 ## Rollback and handoff
 

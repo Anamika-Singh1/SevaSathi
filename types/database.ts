@@ -209,14 +209,14 @@ isOneToOne: false
                   ]
                 },"applications": {
                   Row: {
-                    "annual_income": number,"applicant_name": string,"assigned_field_officer_id": string | null,"certificate_type": string,"created_at": string,"created_by": string | null,"district": string,"field_report": string | null,"id": string,"is_demo": boolean,"processed_at": string | null,"purpose": string,"reference_number": string,"stage_entered_at": string,"status": Database["public"]['Enums']["application_status"],"submitted_at": string,"taluk": string,"target_date": string | null,"unresolved_actions": (string)[],"updated_at": string,"village": string
+                    "annual_income": number,"applicant_name": string,"application_date": string | null,"assigned_field_officer_id": string | null,"certificate_type": string,"created_at": string,"created_by": string | null,"district": string,"field_report": string | null,"id": string,"is_demo": boolean,"processed_at": string | null,"processing_status": string | null,"purpose": string,"reference_number": string,"stage_entered_at": string,"status": Database["public"]['Enums']["application_status"],"submitted_at": string,"taluk": string,"target_date": string | null,"unresolved_actions": (string)[],"updated_at": string,"village": string,"workflow_stage": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "annual_income": number,"applicant_name": string,"assigned_field_officer_id"?: string | null,"certificate_type"?: string,"created_at"?: string,"created_by"?: string | null,"district": string,"field_report"?: string | null,"id"?: string,"is_demo"?: boolean,"processed_at"?: string | null,"purpose": string,"reference_number": string,"stage_entered_at"?: string,"status"?: Database["public"]['Enums']["application_status"],"submitted_at"?: string,"taluk": string,"target_date"?: string | null,"unresolved_actions"?: (string)[],"updated_at"?: string,"village": string
+                    "annual_income": number,"applicant_name": string,"application_date"?: never,"assigned_field_officer_id"?: string | null,"certificate_type"?: string,"created_at"?: string,"created_by"?: string | null,"district": string,"field_report"?: string | null,"id"?: string,"is_demo"?: boolean,"processed_at"?: string | null,"processing_status"?: never,"purpose": string,"reference_number": string,"stage_entered_at"?: string,"status"?: Database["public"]['Enums']["application_status"],"submitted_at"?: string,"taluk": string,"target_date"?: string | null,"unresolved_actions"?: (string)[],"updated_at"?: string,"village": string,"workflow_stage"?: never
                   }
                   Update: {
-                    "annual_income"?: number,"applicant_name"?: string,"assigned_field_officer_id"?: string | null,"certificate_type"?: string,"created_at"?: string,"created_by"?: string | null,"district"?: string,"field_report"?: string | null,"id"?: string,"is_demo"?: boolean,"processed_at"?: string | null,"purpose"?: string,"reference_number"?: string,"stage_entered_at"?: string,"status"?: Database["public"]['Enums']["application_status"],"submitted_at"?: string,"taluk"?: string,"target_date"?: string | null,"unresolved_actions"?: (string)[],"updated_at"?: string,"village"?: string
+                    "annual_income"?: number,"applicant_name"?: string,"application_date"?: never,"assigned_field_officer_id"?: string | null,"certificate_type"?: string,"created_at"?: string,"created_by"?: string | null,"district"?: string,"field_report"?: string | null,"id"?: string,"is_demo"?: boolean,"processed_at"?: string | null,"processing_status"?: never,"purpose"?: string,"reference_number"?: string,"stage_entered_at"?: string,"status"?: Database["public"]['Enums']["application_status"],"submitted_at"?: string,"taluk"?: string,"target_date"?: string | null,"unresolved_actions"?: (string)[],"updated_at"?: string,"village"?: string,"workflow_stage"?: never
                   }
                   Relationships: [
                     {
@@ -274,7 +274,7 @@ isOneToOne: false
                   ]
                 },"application_worklist": {
                   Row: {
-                    "annual_income": number,"applicant_name": string,"assigned_field_officer_id": string | null,"certificate_type": string,"clarification_pending": boolean,"created_at": string,"created_by": string | null,"days_overdue": number | null,"days_pending": number | null,"district": string,"due_soon_days": number,"effective_target_date": string | null,"field_report": string | null,"id": string,"is_demo": boolean,"is_overdue": boolean | null,"is_pending": boolean | null,"priority": string | null,"priority_rank": number | null,"priority_reasons": (string)[] | null,"processed_at": string | null,"purpose": string,"recently_processed": boolean | null,"reference_number": string,"resume_status": Database["public"]['Enums']["application_status"] | null,"stage_attention_days": number,"stage_entered_at": string,"stage_waiting_days": number | null,"status": Database["public"]['Enums']["application_status"],"submitted_at": string,"taluk": string,"target_date": string | null,"today": string | null,"unresolved_action_count": number | null,"unresolved_actions": (string)[],"updated_at": string,"urgent_action_count": number,"village": string,"workflow_version": number
+                    "annual_income": number,"applicant_name": string,"application_date": string | null,"assigned_field_officer_id": string | null,"certificate_type": string,"clarification_pending": boolean,"created_at": string,"created_by": string | null,"days_overdue": number | null,"days_pending": number | null,"district": string,"due_soon_days": number,"effective_target_date": string | null,"field_report": string | null,"id": string,"is_demo": boolean,"is_overdue": boolean | null,"is_pending": boolean | null,"priority": string | null,"priority_rank": number | null,"priority_reasons": (string)[] | null,"processed_at": string | null,"processing_status": string | null,"purpose": string,"recently_processed": boolean | null,"reference_number": string,"resume_status": Database["public"]['Enums']["application_status"] | null,"stage_attention_days": number,"stage_entered_at": string,"stage_waiting_days": number | null,"status": Database["public"]['Enums']["application_status"],"submitted_at": string,"taluk": string,"target_date": string | null,"today": string | null,"unresolved_action_count": number | null,"unresolved_actions": (string)[],"updated_at": string,"urgent_action_count": number,"village": string,"workflow_stage": string | null,"workflow_version": number
                   }
                   ComputedFields: never
                   Relationships: [
@@ -322,6 +322,11 @@ isOneToOne: false
                            },
 "can_read_application":
 { Args: { "target_id": string }; Returns: boolean
+                           },
+"create_application":
+{ Args: { "annual_income": number,"applicant_name": string,"purpose": string,"request_id": string,"village": string }; Returns: Json
+                           } |
+{ Args: { "annual_income": number,"applicant_name": string,"application_date": string,"certificate_type": string,"documents": Json,"notes": string,"purpose": string,"request_id": string,"village": string }; Returns: Json
                            },
 "current_officer_role":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["officer_role"]

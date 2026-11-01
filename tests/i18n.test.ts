@@ -12,6 +12,10 @@ import {
   eventLabel,
   priorityReason,
   certificateLabel,
+  locationLabel,
+  officerLabel,
+  documentLabel,
+  demoRecordText,
 } from "../lib/i18n/records";
 import { createLoginSchema } from "../lib/validation";
 import { stageLabel, workflowErrorMessage } from "../lib/workflow";
@@ -48,6 +52,31 @@ test("both catalogs cover every message and preserve interpolation values", () =
     t("View details for {number}", { number: "<script>" }),
     "<script> ಅರ್ಜಿಯ ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
   );
+});
+
+test("database-backed interface and demo labels follow the locale without changing case evidence", () => {
+  assert.equal(locationLabel("ಮೈಸೂರು", "en"), "Mysuru");
+  assert.equal(locationLabel("Mysuru", "kn"), "ಮೈಸೂರು");
+  assert.equal(locationLabel("ಮಾದರಿ ಗ್ರಾಮ ೨", "en"), "Demo village 2");
+  assert.equal(locationLabel("ಮಾದರಿ ಗ್ರಾಮ ೨", "kn"), "ಮಾದರಿ ಗ್ರಾಮ ೨");
+  assert.equal(officerLabel("ಮಾದರಿ ನಿರ್ವಾಹಕರು", "en"), "Demo operator");
+  assert.equal(officerLabel("Anamika", "kn"), "Anamika");
+  assert.equal(documentLabel("ಆದಾಯ ಘೋಷಣೆ / Income declaration", "en"), "Income declaration");
+  assert.equal(documentLabel("Income declaration", "kn"), "ಆದಾಯ ಘೋಷಣೆ");
+  assert.equal(certificateLabel("INCOME", "kn"), "ಆದಾಯ ಪ್ರಮಾಣಪತ್ರ");
+  assert.equal(demoRecordText("ಮಾದರಿ ಅರ್ಜಿದಾರ ಅ", "en", true), "Demo applicant 1");
+  assert.equal(demoRecordText("ವಿದ್ಯಾರ್ಥಿವೇತನ / Scholarship", "en", true), "Scholarship");
+  assert.equal(demoRecordText("ವಿದ್ಯಾರ್ಥಿವೇತನ / Scholarship", "kn", true), "ವಿದ್ಯಾರ್ಥಿವೇತನ");
+  const note = "ಪ್ರಾತ್ಯಕ್ಷಿಕೆಗಾಗಿ ಮಾತ್ರ. ಎಲ್ಲಾ ವಿವರಗಳು ಕಾಲ್ಪನಿಕ. / Demo only. All details are fictional.";
+  assert.equal(demoRecordText(note, "en", true), "Demo only. All details are fictional.");
+  for (const value of ["Anamika / ಅನಾಮಿಕಾ", "North / South", "Officer notes must remain exactly as recorded.", note]) {
+    for (const locale of ["kn", "en"] as const) {
+      assert.equal(demoRecordText(value, locale, false), value);
+      assert.equal(documentLabel(value, locale), value);
+      assert.equal(locationLabel(value, locale), value);
+    }
+  }
+  assert.equal(demoRecordText("Custom demo officer note", "kn", true), "Custom demo officer note");
 });
 test("language preferences are allowlisted with Kannada as the default", () => {
   for (const value of [undefined, null, "", "fr", "EN", "<script>", ["en"]])

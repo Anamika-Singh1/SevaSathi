@@ -29,6 +29,8 @@ export function isProtectedPath(path: string) {
 }
 
 export function canAccessPath(role: Role, path: string): boolean {
+  if (path === "/applications/new" || path.startsWith("/applications/new/"))
+    return role === "OPERATOR";
   if (path === "/field-work" || path.startsWith("/field-work/"))
     return role === "FIELD_OFFICER";
   if (path === "/reviews" || path.startsWith("/reviews/"))

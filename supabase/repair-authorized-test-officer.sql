@@ -23,6 +23,8 @@ begin
     select 1 from auth.users
     where id=authorized_id and lower(email)=authorized_email
       and email_confirmed_at is not null
+      and deleted_at is null
+      and (banned_until is null or banned_until<=now())
   ) then
     raise exception 'The explicitly authorized, confirmed test user does not match this project. No officer profile was changed.';
   end if;

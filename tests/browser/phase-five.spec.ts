@@ -136,12 +136,37 @@ test("language preferences persist across refresh and new tabs; both languages f
       for (const path of [
         "/dashboard",
         "/applications",
+        "/applications/new",
         "/applications/10000000-0000-4000-8000-000000000001",
         "/settings",
       ]) {
         await page.goto(path);
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
         await expect(page.locator("html")).toHaveAttribute("lang", locale);
+        await expect(page.locator("header")).toContainText(locale === "en" ? "Demo operator" : "ಮಾದರಿ ನಿರ್ವಾಹಕರು");
+        if (path.endsWith("000000000001")) {
+          const content = page.locator("#main-content");
+          await expect(content).toContainText(locale === "en" ? "Demo applicant 1" : "ಮಾದರಿ ಅರ್ಜಿದಾರ ಅ");
+          await expect(content).toContainText(locale === "en" ? "Scholarship" : "ವಿದ್ಯಾರ್ಥಿವೇತನ");
+          await expect(content.getByText(locale === "en" ? "Demo only. All details are fictional." : "ಪ್ರಾತ್ಯಕ್ಷಿಕೆಗಾಗಿ ಮಾತ್ರ. ಎಲ್ಲಾ ವಿವರಗಳು ಕಾಲ್ಪನಿಕ.", { exact: true }).last()).toBeVisible();
+          if (locale === "en") {
+            // The reading view deliberately retains original script alongside
+            // an optional translation; check the rest of the localized page.
+            const translatedPage = await content.evaluate(node => {
+              const copy = node.cloneNode(true) as HTMLElement;
+              copy.querySelector('[data-testid="reading-view"]')?.remove();
+              return copy.textContent ?? "";
+            });
+            expect(translatedPage).not.toMatch(/[\u0c80-\u0cff]/);
+          }
+        }
+        if (path === "/applications") {
+          await expect(page.locator('option[value="ಮಾದರಿ ಗ್ರಾಮ ೧"]')).toHaveText(locale === "en" ? "Demo village 1" : "ಮಾದರಿ ಗ್ರಾಮ ೧");
+        }
+        if (path === "/applications/new") {
+          await expect(page.locator("#application-district")).toHaveValue(locale === "en" ? "Mysuru" : "ಮೈಸೂರು");
+          await expect(page.locator("#application-taluk")).toHaveValue(locale === "en" ? "Mysuru" : "ಮೈಸೂರು");
+        }
         await fit(page);
         if (path === "/dashboard" && [360, 1440].includes(width))
           await page.screenshot({
@@ -168,6 +193,17 @@ test("language preferences persist across refresh and new tabs; both languages f
     }
   }
   await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto("/applications/new");
+  const originalName = "Officer-entered name / ದಾಖಲಾದ ಹೆಸರು";
+  const originalNote = "Saved evidence must remain in its original wording / ಮೂಲ ಟಿಪ್ಪಣಿ";
+  await page.locator('[name="applicant_name"]').fill(originalName);
+  await page.locator('[name="notes"]').fill(originalNote);
+  for (const locale of ["kn", "en"] as const) {
+    await language(page, locale);
+    await expect(page.locator('[name="applicant_name"]')).toHaveValue(originalName);
+    await expect(page.locator('[name="notes"]')).toHaveValue(originalNote);
+    await expect(page.locator("#application-district")).toHaveValue(locale === "en" ? "Mysuru" : "ಮೈಸೂರು");
+  }
   await page.goto("/applications");
   await page.locator("#search").focus();
   const visibleFocus = await page.locator("#search").evaluate((el) => {

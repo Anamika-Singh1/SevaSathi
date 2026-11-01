@@ -6,26 +6,34 @@ export const AI_FEATURES = {
   screening: {
     role: "OPERATOR",
     stage: "SUBMITTED",
+    assistanceStage: "DOCUMENT_SCREENING",
     kn: "ದಾಖಲೆ ಪರಿಶೀಲನಾ ಸಹಾಯ",
     en: "Document screening assistant",
+    description: "Check recorded receipts, missing documents and clarification questions.",
   },
   field: {
     role: "FIELD_OFFICER",
     stage: "FIELD_VERIFICATION",
+    assistanceStage: "FIELD_VERIFICATION",
     kn: "ಕ್ಷೇತ್ರ ಪರಿಶೀಲನಾ ಸಹಾಯ",
     en: "Field verification assistant",
+    description: "Turn saved visit observations into a report without inventing verification.",
   },
   review: {
     role: "CASEWORKER",
     stage: "UNDER_REVIEW",
+    assistanceStage: "CASEWORKER_REVIEW",
     kn: "ಪ್ರಕರಣ ಪರಿಶೀಲನಾ ಸಹಾಯ",
     en: "Caseworker review assistant",
+    description: "Review the recorded evidence, unresolved questions and possible inconsistencies.",
   },
   decision: {
     role: "APPROVING_OFFICER",
     stage: "PENDING_APPROVAL",
+    assistanceStage: "FINAL_DECISION",
     kn: "ನಿರ್ಧಾರ ಟಿಪ್ಪಣಿ ಸಹಾಯ",
     en: "Decision note assistant",
+    description: "Draft a neutral note for the officer's own decision, with outstanding issues visible.",
   },
 } as const;
 export const aiFeatureSchema = z.enum([
@@ -44,20 +52,29 @@ export const aiRequestSchema = z
   })
   .strict();
 export type AiRequest = z.infer<typeof aiRequestSchema>;
+export const aiStageSchema = z.enum([
+  "DOCUMENT_SCREENING",
+  "FIELD_VERIFICATION",
+  "CASEWORKER_REVIEW",
+  "FINAL_DECISION",
+]);
 const items = z.array(z.string().trim().min(1).max(600)).max(16);
 export const aiSuggestionsSchema = z
   .object({
+    stage: aiStageSchema,
     language: z.enum(["kn", "en"]),
     summary: z.string().trim().min(1).max(2400),
     evidence: items,
     missingInformation: items,
-    questionsToVerify: items,
+    followUpQuestions: items,
     inconsistencies: items,
     unverifiedInformation: items,
-    draft: z.string().trim().min(1).max(6000),
+    draftNote: z.string().trim().min(1).max(4000),
+    limitations: items,
   })
   .strict();
 export type AiSuggestions = z.infer<typeof aiSuggestionsSchema>;
+export type AIAssistanceResponse = AiSuggestions;
 export const aiSuccessSchema = z
   .object({
     ok: z.literal(true),

@@ -35,7 +35,10 @@ export function AiAssistantPanel({
 }) {
   const { t, locale } = useI18n();
 
-  const [language, setLanguage] = useState<"kn" | "en">(locale);
+  const [selection, setSelection] = useState({ locale, language: locale });
+  // Follow a changed interface locale without discarding an edited AI draft.
+  if (selection.locale !== locale) setSelection({ locale, language: locale });
+  const language = selection.locale === locale ? selection.language : locale;
   const [humanAction, setHumanAction] = useState("");
   const [rationale, setRationale] = useState("");
   const [response, setResponse] = useState<AiSuccess | null>(null);
@@ -55,6 +58,7 @@ export function AiAssistantPanel({
       controllerRef.current?.abort();
     };
   }, []);
+  useEffect(() => () => controllerRef.current?.abort(), [locale]);
   useEffect(() => {
     if (retryAfter <= 0) return;
     const timer = setTimeout(
@@ -68,7 +72,7 @@ export function AiAssistantPanel({
     if (!allowed || controllerRef.current || retryAfter > 0) return;
     if (
       response &&
-      draft !== response.suggestions.draft &&
+      draft !== response.suggestions.draftNote &&
       !window.confirm(t("Replace your edited AI draft?"))
     )
       return;
@@ -96,7 +100,7 @@ export function AiAssistantPanel({
         },
       );
       const data: unknown = await result.json();
-      if (!aliveRef.current) return;
+      if (!aliveRef.current || controller.signal.aborted) return;
       if (!result.ok) {
         const failure = data as {
           error?: {
@@ -126,6 +130,7 @@ export function AiAssistantPanel({
       if (
         !parsed.success ||
         parsed.data.feature !== feature ||
+        parsed.data.suggestions.stage !== rule.assistanceStage ||
         parsed.data.sourceVersion !== version ||
         parsed.data.suggestions.language !== language
       ) {
@@ -133,7 +138,7 @@ export function AiAssistantPanel({
         return;
       }
       setResponse(parsed.data);
-      setDraft(parsed.data.suggestions.draft);
+      setDraft(parsed.data.suggestions.draftNote);
     } catch {
       if (aliveRef.current && !controller.signal.aborted)
         setError(
@@ -159,11 +164,11 @@ export function AiAssistantPanel({
   function changeLanguage(next: "kn" | "en") {
     if (
       response &&
-      draft !== response.suggestions.draft &&
+      draft !== response.suggestions.draftNote &&
       !window.confirm(t("Clear the edited AI draft to change language?"))
     )
       return;
-    setLanguage(next);
+    setSelection({ locale, language: next });
     setResponse(null);
     setDraft("");
     setError("");
@@ -183,6 +188,9 @@ export function AiAssistantPanel({
           </h2>
         </div>
         <p className="text-sm leading-7 text-primary">{rule[locale]}</p>
+        <p className="text-xs leading-7 text-muted-foreground">
+          {t(rule.description)}
+        </p>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="flex gap-2 rounded-lg border border-teal-200 bg-teal-50 p-4 text-xs leading-7 text-teal-950">
@@ -260,16 +268,27 @@ export function AiAssistantPanel({
             <div className="flex flex-wrap gap-3">
               <Button
                 type="button"
+                data-testid="ai-generate"
                 onClick={generate}
                 disabled={loading || retryAfter > 0}
                 className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal leading-7 sm:w-auto"
               >
-                {loading ? (
-                  <LoaderCircle className="animate-spin" />
-                ) : (
-                  <Sparkles />
-                )}
-                {loading ? t("Generating…") : t("Generate Suggestions")}
+                <span aria-hidden="true" className="shrink-0">
+                  {loading ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : response ? (
+                    <RefreshCw className="size-4" />
+                  ) : (
+                    <Sparkles className="size-4" />
+                  )}
+                </span>
+                <span>
+                  {loading
+                    ? t("Generating…")
+                    : response
+                      ? t("Regenerate")
+                      : t("Generate AI Assistance")}
+                </span>
               </Button>
             </div>
           </>
@@ -316,9 +335,10 @@ export function AiAssistantPanel({
               [
                 ["evidence", t("Recorded evidence")],
                 ["missingInformation", t("Missing information")],
-                ["questionsToVerify", t("Questions to verify")],
+                ["followUpQuestions", t("Follow-up questions")],
                 ["inconsistencies", t("Recorded inconsistencies")],
                 ["unverifiedInformation", t("Unverified information")],
+                ["limitations", t("AI limitations")],
               ] as const
             ).map(([key, label]) => (
               <section key={key}>
@@ -344,13 +364,15 @@ export function AiAssistantPanel({
               {t("Editable AI draft")}
               <textarea
                 ref={draftRef}
+                data-testid="ai-draft"
                 lang={response.suggestions.language}
                 value={draft}
+                disabled={loading}
                 onChange={(event) => {
                   setDraft(event.target.value);
                   setCopyMessage("");
                 }}
-                maxLength={6000}
+                maxLength={4000}
                 rows={10}
                 className="mt-2 w-full min-w-0 rounded-lg border border-input bg-white p-3 text-sm leading-8 font-normal"
               />
@@ -371,7 +393,7 @@ export function AiAssistantPanel({
             )}
             <p className="text-xs leading-7 text-muted-foreground">
               {t(
-                "AI draft only. Verify against saved records. Only an authorized human officer may make the official decision.",
+                "To save this draft, copy it into the workflow notes, review it, then explicitly save. Copying does not save or submit it.",
               )}
             </p>
           </div>

@@ -1,7 +1,9 @@
 import { getI18n } from "@/lib/i18n/server";
+import { locationLabel, demoRecordText } from "@/lib/i18n/records";
 import Link from "next/link";
 import {
   ArrowRight,
+  Plus,
   Files,
   MapPinned,
   ClipboardCheck,
@@ -32,7 +34,7 @@ export default async function DashboardPage({
   const { t, locale } = await getI18n();
 
   const { profile } = await requireOfficer();
-  const [{ queue, recent }, stats, settings, params] = await Promise.all([
+  const [{ queue, recent, screening }, stats, settings, params] = await Promise.all([
     getDashboardApplications(),
     getApplicationStats(),
     getWorkflowSettings(),
@@ -101,15 +103,25 @@ export default async function DashboardPage({
         title={t("Welcome to your workspace")}
         description={t(
           "{taluk} taluk · Your applications and today’s priorities.",
-          { taluk: profile.taluk },
+          { taluk: locationLabel(profile.taluk, locale) },
         )}
       >
-        <Button asChild>
-          <Link href="/applications">
-            {t("View applications")}
-            <ArrowRight />
-          </Link>
-        </Button>
+        <div className="flex min-w-0 flex-wrap gap-3">
+          {profile.role === "OPERATOR" && (
+            <Button asChild variant="outline">
+              <Link href="/applications/new">
+                <Plus aria-hidden="true" />
+                {t("Add application")}
+              </Link>
+            </Button>
+          )}
+          <Button asChild>
+            <Link href="/applications">
+              {t("View applications")}
+              <ArrowRight />
+            </Link>
+          </Button>
+        </div>
       </PageHeading>
       {params.notice === "forbidden" && (
         <p
@@ -160,6 +172,13 @@ export default async function DashboardPage({
           </Link>
         ))}
       </div>
+      {profile.role === "OPERATOR" && (
+        <section className="mt-10" aria-labelledby="screening-heading" data-testid="dashboard-screening-queue">
+          <h2 id="screening-heading" className="text-lg leading-8 font-semibold">{t("Document screening queue")}</h2>
+          <p className="mt-1 mb-5 text-xs leading-6 text-muted-foreground">{t("New applications awaiting document screening.")}</p>
+          <ApplicationTable applications={screening} />
+        </section>
+      )}
       <section className="mt-10" aria-labelledby="attention-heading">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -214,7 +233,7 @@ export default async function DashboardPage({
                     {application.reference_number}
                   </p>
                   <p className="mt-2 text-sm leading-7">
-                    {application.applicant_name} · {application.village}
+                    {demoRecordText(application.applicant_name, locale, application.is_demo)} · {locationLabel(application.village, locale)}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

@@ -34,6 +34,8 @@ test("every role has shared routes and only its own specialized queue", () => {
       assert.equal(canAccessPath(role, path), true);
     assert.equal(canAccessPath(role, "/field-work"), role === "FIELD_OFFICER");
     assert.equal(canAccessPath(role, "/reviews"), role === "CASEWORKER");
+    assert.equal(canAccessPath(role, "/applications/new"), role === "OPERATOR");
+    assert.equal(canAccessPath(role, "/applications/new/extra"), role === "OPERATOR");
     assert.equal(
       canAccessPath(role, "/decisions"),
       role === "APPROVING_OFFICER",

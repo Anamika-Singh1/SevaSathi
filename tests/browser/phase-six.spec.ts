@@ -77,10 +77,10 @@ test("untrusted application and AI text stays escaped; logout clears protected d
     await expect(page.locator("#documents")).toContainText(payload);
     await page.route(`**/api/applications/${id}/ai/screening`, async route => {
       const input = route.request().postDataJSON() as { version: number; language: string };
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, feature: "screening", sourceVersion: input.version, generatedAt: new Date().toISOString(), suggestions: { language: input.language, summary: payload, evidence: [], missingInformation: [], questionsToVerify: [], inconsistencies: [], unverifiedInformation: [], draft: payload } }) });
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, feature: "screening", sourceVersion: input.version, generatedAt: new Date().toISOString(), suggestions: { stage: "DOCUMENT_SCREENING", language: input.language, summary: payload, evidence: [], missingInformation: [], followUpQuestions: [], inconsistencies: [], unverifiedInformation: [], limitations: [], draftNote: payload } }) });
     });
     const ai = page.getByTestId("ai-assistant");
-    await ai.getByRole("button", { name: "Generate Suggestions", exact: true }).click();
+    await ai.getByTestId("ai-generate").click();
     await expect(ai.getByTestId("ai-suggestions")).toBeVisible();
     await expect(ai.getByRole("textbox", { name: "Editable AI draft" })).toHaveValue(payload);
     expect(await page.evaluate(() => (window as Window & { __sevasathi_xss?: boolean }).__sevasathi_xss)).toBeUndefined();

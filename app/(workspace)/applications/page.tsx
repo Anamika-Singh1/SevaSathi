@@ -1,10 +1,12 @@
 import { getI18n } from "@/lib/i18n/server";
+import { locationLabel } from "@/lib/i18n/records";
 import Link from "next/link";
 import {
   Search,
   SlidersHorizontal,
   ArrowLeft,
   ArrowRight,
+  Plus,
   X,
 } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
@@ -38,7 +40,7 @@ export default async function ApplicationsPage({
 }) {
   const { t, locale } = await getI18n();
 
-  await requireOfficer();
+  const { profile } = await requireOfficer();
   const filters = parseApplicationFilters(await searchParams);
   const [{ applications, count, page, totalPages, pageSize }, villages] =
     await Promise.all([listApplications(filters), getVillages()]);
@@ -58,7 +60,16 @@ export default async function ApplicationsPage({
         description={t(
           "Search and manage your authorized application register.",
         )}
-      />
+      >
+        {profile.role === "OPERATOR" && (
+          <Button asChild>
+            <Link href="/applications/new">
+              <Plus aria-hidden="true" />
+              {t("Add application")}
+            </Link>
+          </Button>
+        )}
+      </PageHeading>
       <form
         key={JSON.stringify(filters)}
         action="/applications"
@@ -117,11 +128,11 @@ export default async function ApplicationsPage({
             >
               <option value="">{t("All villages")}</option>
               {filters.village && !villages.includes(filters.village) && (
-                <option value={filters.village}>{filters.village}</option>
+                <option value={filters.village}>{locationLabel(filters.village, locale)}</option>
               )}
               {villages.map((village) => (
                 <option key={village} value={village}>
-                  {village}
+                  {locationLabel(village, locale)}
                 </option>
               ))}
             </select>

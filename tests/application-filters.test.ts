@@ -64,3 +64,12 @@ test("search supports partial IDs, names, and exact UUIDs while quoting PostgRES
   );
   assert.ok(applicationSearchExpression("%").includes("\\\\%"));
 });
+
+test("translated demo applicant names remain searchable without replacing literal searches", () => {
+  const expression = applicationSearchExpression("Demo applicant 1");
+  assert.ok(expression.includes('applicant_name.ilike."%Demo applicant 1%"'));
+  assert.ok(expression.includes('and(is_demo.eq.true,applicant_name.ilike."%ಮಾದರಿ ಅರ್ಜಿದಾರ ಅ%")'));
+  assert.ok(applicationSearchExpression("Demo applicant").includes('applicant_name.ilike."%ಮಾದರಿ ಅರ್ಜಿದಾರ%"'));
+  for (const value of ['Demo applicant 1"),id.gt.0', "Demo applicant 0", "Demo applicant 99", "Anamika"])
+    assert.ok(!applicationSearchExpression(value).includes("is_demo.eq.true"));
+});

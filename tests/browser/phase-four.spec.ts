@@ -81,7 +81,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
         await page.goto(`/applications/${id}`);
         const panel = page.getByTestId("ai-assistant");
         await expect(
-          panel.getByRole("button", { name: /Generate Suggestions/ }),
+          panel.getByTestId("ai-generate"),
         ).toBeEnabled();
         await expect(
           panel.getByRole("combobox", { name: /Suggestion language/ }),
@@ -92,7 +92,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
         const endpoint = `**/api/applications/${id}/ai/${feature}`;
         if (!process.env.GEMINI_API_KEY?.trim()) {
           await panel
-            .getByRole("button", { name: /Generate Suggestions/ })
+            .getByTestId("ai-generate")
             .click();
           await expect(panel.getByRole("alert")).toContainText(
             /GEMINI_API_KEY/,
@@ -188,6 +188,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
           }
           const kn = body.language === "kn";
           const suggestions: AiSuggestions = {
+            stage: AI_FEATURES[feature].assistanceStage,
             language: body.language,
             summary: kn
               ? "UI ಪರೀಕ್ಷಾ ಕರಡು ಮಾತ್ರ: ಉಳಿಸಿದ ದತ್ತಾಂಶದ ಸಾರಾಂಶ."
@@ -200,7 +201,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
                 ? "ಭೇಟಿ ಮಾಹಿತಿ ಇನ್ನೂ ದಾಖಲಾಗಿಲ್ಲ"
                 : "Visit information is not recorded",
             ],
-            questionsToVerify: [
+            followUpQuestions: [
               kn
                 ? "ಮಾಹಿತಿಯನ್ನು ಅಧಿಕಾರಿ ಪರಿಶೀಲಿಸಿದ್ದಾರೆಯೇ?"
                 : "Has the officer verified the information?",
@@ -209,7 +210,8 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
             unverifiedInformation: [
               kn ? "ಸ್ವತಂತ್ರ ದೃಢೀಕರಣ ಇಲ್ಲ" : "No independent verification",
             ],
-            draft: kn
+            limitations: [kn ? "ಅಧಿಕಾರಿ ಪರಿಶೀಲನೆ ಅಗತ್ಯ" : "Officer review required"],
+            draftNote: kn
               ? "UI ಪರೀಕ್ಷಾ ಕರಡು ಮಾತ್ರ. ಉಳಿಸಿದ ವಿವರಗಳನ್ನು ಅಧಿಕಾರಿ ಪರಿಶೀಲಿಸಬೇಕು."
               : "UI fixture only. The officer must verify the saved details.",
           };
@@ -225,7 +227,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
           });
         });
         await panel
-          .getByRole("button", { name: /Generate Suggestions/ })
+          .getByTestId("ai-generate")
           .click();
         await expect(
           panel.getByRole("button", { name: /Generating/ }),
@@ -245,7 +247,9 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
         release();
         gate = null;
         await expect(panel.getByTestId("ai-suggestions")).toBeVisible();
-        const draft = panel.getByRole("textbox", { name: /Editable AI draft/ });
+        await expect(panel.getByRole("heading", { name: "AI limitations", exact: true })).toBeVisible();
+        await expect(panel.getByTestId("ai-generate")).toHaveText(/Regenerate/);
+        const draft = panel.getByTestId("ai-draft");
         await draft.fill("ಅಧಿಕಾರಿ ಸಂಪಾದಿಸಿದ UI ಪರೀಕ್ಷಾ ಕರಡು.");
         await panel.getByRole("button", { name: /Copy draft/ }).click();
         await expect(panel.getByRole("status")).toContainText(/Draft copied/);
@@ -254,7 +258,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
         );
         mode = "failure";
         await panel
-          .getByRole("button", { name: /Generate Suggestions/ })
+          .getByTestId("ai-generate")
           .click();
         await expect(panel.getByRole("alert")).toContainText(
           /temporarily unavailable/,
@@ -262,7 +266,7 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
         await expect(draft).toHaveValue("ಅಧಿಕಾರಿ ಸಂಪಾದಿಸಿದ UI ಪರೀಕ್ಷಾ ಕರಡು.");
         mode = "rate";
         await panel
-          .getByRole("button", { name: /Generate Suggestions/ })
+          .getByTestId("ai-generate")
           .click();
         await expect(panel.getByRole("alert")).toContainText(/rate limited/);
         await expect(
@@ -278,9 +282,16 @@ test("all four AI panels handle missing configuration, editable fixture drafts, 
           .getByRole("combobox", { name: /Suggestion language/ })
           .selectOption("en");
         await panel
-          .getByRole("button", { name: /Generate Suggestions/ })
+          .getByTestId("ai-generate")
           .click();
         await expect(draft).toHaveValue(/UI fixture only/);
+        await draft.fill("Officer-edited draft retained across interface language changes.");
+        await page.getByTestId("language-switcher").first().locator("select").selectOption("kn");
+        await expect(page.locator("html")).toHaveAttribute("lang", "kn");
+        await expect(panel.locator("select").first()).toHaveValue("kn");
+        await expect(draft).toHaveValue("Officer-edited draft retained across interface language changes.");
+        await panel.getByTestId("ai-generate").click();
+        await expect(draft).toHaveValue(/UI ಪರೀಕ್ಷಾ ಕರಡು ಮಾತ್ರ/);
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth,

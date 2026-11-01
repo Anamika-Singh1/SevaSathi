@@ -119,3 +119,28 @@ test("AI routes reject stale requests, enforce methods, and honestly report miss
     assert.equal(data.suggestions, undefined);
   }
 });
+
+test("reading translation requires authenticated access and rejects browser text or workflow commands", async () => {
+  const endpoint = `${base}/api/applications/${first}/translation`;
+  const call = (body: unknown, auth = cookie, origin = base) => fetch(endpoint, {
+    method: "POST", headers: { "content-type": "application/json", cookie: auth, origin },
+    body: JSON.stringify(body), redirect: "manual",
+  });
+  const input = { version: 0, language: "kn", field: "applicant_name" };
+  assert.equal((await call(input, "")).status, 401);
+  for (const body of [{ ...input, text: "Browser-supplied source" }, { ...input, action: "APPROVE" }, { ...input, language: "fr" }])
+    assert.equal((await call(body)).status, 400);
+  assert.equal((await call(input, cookie, "https://external.example")).status, 403);
+  assert.equal((await call({ ...input, version: 2147483647 })).status, 409);
+  assert.equal((await fetch(endpoint, { headers: { cookie }, redirect: "manual" })).status, 405);
+  if (!process.env.GEMINI_API_KEY?.trim()) {
+    const response = await call(input);
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).error.code, "AI_NOT_CONFIGURED");
+    const closed = await fetch(`${base}/api/applications/10000000-0000-4000-8000-000000000011/translation`, {
+      method: "POST", headers: { "content-type": "application/json", cookie, origin: base }, body: JSON.stringify(input),
+    });
+    assert.equal(closed.status, 503, "A reading-only capability must not require the final-decision role on closed cases");
+    assert.equal((await closed.json()).error.code, "AI_NOT_CONFIGURED");
+  }
+});

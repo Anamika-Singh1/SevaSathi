@@ -1,5 +1,5 @@
 import { getI18n } from "@/lib/i18n/server";
-import { priorityReason } from "@/lib/i18n/records";
+import { priorityReason, demoRecordText, locationLabel } from "@/lib/i18n/records";
 import Link from "next/link";
 import { ArrowUpRight, FolderOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -67,10 +67,10 @@ export async function ApplicationTable({
               <PriorityBadge priority={application.priority} />
             </div>
             <p className="mt-2 text-base leading-8 font-semibold">
-              {application.applicant_name}
+              {demoRecordText(application.applicant_name, locale, application.is_demo)}
             </p>
             <p className="mb-4 text-sm text-muted-foreground">
-              {application.village}
+              {locationLabel(application.village, locale)}
             </p>
             <StatusBadge status={application.status} />
             {application.clarification_pending && (
@@ -173,10 +173,10 @@ export async function ApplicationTable({
                 </td>
                 <td className="px-4 py-5">
                   <p className="leading-7 font-medium">
-                    {application.applicant_name}
+                    {demoRecordText(application.applicant_name, locale, application.is_demo)}
                   </p>
                   <p className="mt-2 text-xs leading-6 text-muted-foreground">
-                    {application.village}
+                    {locationLabel(application.village, locale)}
                   </p>
                 </td>
                 <td className="px-4 py-5">

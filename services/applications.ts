@@ -211,7 +211,7 @@ export async function getApplicationStats() {
 export async function getDashboardApplications() {
   await requireOfficer();
   const supabase = await createClient();
-  const [queue, recent] = await Promise.all([
+  const [queue, recent, screening] = await Promise.all([
     supabase
       .from("application_worklist")
       .select("*")
@@ -230,7 +230,15 @@ export async function getDashboardApplications() {
       .order("id")
       .limit(3)
       .overrideTypes<ApplicationWorklist[], { merge: false }>(),
+    supabase
+      .from("application_worklist")
+      .select("*")
+      .eq("status", "SUBMITTED")
+      .order("created_at", { ascending: false })
+      .order("id")
+      .limit(5)
+      .overrideTypes<ApplicationWorklist[], { merge: false }>(),
   ]);
-  if (queue.error || recent.error) throw loadError();
-  return { queue: queue.data, recent: recent.data };
+  if (queue.error || recent.error || screening.error) throw loadError();
+  return { queue: queue.data, recent: recent.data, screening: screening.data };
 }

@@ -6,29 +6,15 @@ import { createClient } from "@/lib/supabase/server";
 import { createAiHandler } from "@/lib/ai/handler";
 import { createGeminiGenerator } from "@/lib/ai/gemini-provider";
 import { AiError } from "@/lib/ai/errors";
+import { getGeminiConfig } from "@/lib/ai/config";
 import type { AiCase } from "@/lib/ai/context";
 
 function config() {
-  if (!process.env.GEMINI_API_KEY?.trim())
-    throw new AiError("AI_NOT_CONFIGURED", 503);
-  const parsed = z
-    .object({
-      key: z.string().trim().min(10),
-      model: z
-        .string()
-        .trim()
-        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{1,99}$/),
-    })
-    .safeParse({
-      key: process.env.GEMINI_API_KEY,
-      model: process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite",
-    });
-  if (!parsed.success) throw new AiError("AI_INVALID_CONFIG", 503);
-  return parsed.data;
+  return getGeminiConfig(process.env);
 }
 async function loadCase(id: string): Promise<AiCase | null> {
   const supabase = await createClient();
-  const [application, workflow, checklist] = await Promise.all([
+  const [application, workflow, checklist, notes] = await Promise.all([
     supabase
       .from("applications")
       .select(
@@ -46,14 +32,24 @@ async function loadCase(id: string): Promise<AiCase | null> {
       .select("label_kn,label_en,required,receipt_status,note")
       .eq("application_id", id)
       .order("key"),
+    supabase
+      .from("application_notes")
+      .select("body,created_at")
+      .eq("application_id", id)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(21),
   ]);
-  if (application.error || workflow.error || checklist.error)
+  if (application.error || workflow.error || checklist.error || notes.error)
     throw new AiError("AI_UNAVAILABLE", 503);
   if (!application.data || !workflow.data) return null;
+  // Refuse oversize records rather than silently dropping earlier evidence.
+  if (notes.data.length > 20) throw new AiError("AI_CONTEXT_TOO_LARGE", 422);
   return {
     application: application.data,
     workflow: workflow.data,
     checklist: checklist.data,
+    notes: notes.data,
   };
 }
 export const handleAiRequest = createAiHandler({

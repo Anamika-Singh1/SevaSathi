@@ -19,7 +19,7 @@ The prototype includes operator screening, field verification, caseworker review
 
 The recorded Phase 6 verification passed ESLint, TypeScript, the production build, 20 Vitest tests, 25 live integration tests, and three database security/atomicity/quota checks. All seven unique Playwright scenarios were verified across the full regression and corrected targeted rerun; the report retains the earlier assertion failures and their fixes. Secret scanning passed, and the production dependency audit reported zero vulnerabilities at that time. [Add any separately recorded Phase 7 results only after they execute.]
 
-Successful live Gemini generation was not verified in the recorded local environment because a real API key was not configured. The real missing-configuration response and successful manual processing afterward were tested; successful browser AI responses used explicit test fixtures. [Update this paragraph only if a real live generation has subsequently been verified.] Mobile coverage uses Chromium emulation; no physical-device test or measured pilot improvement is claimed.
+Eight live Gemini SDK checks passed on 1 November 2026 using fictional data, covering all four stages in Kannada and English with validated structured responses. The missing-configuration response and manual continuation were also tested; successful browser AI responses use explicit test fixtures. Authenticated generation against the actual deployed endpoint still needs verification. Mobile coverage uses Chromium emulation; no physical-device test or measured pilot improvement is claimed.
 
 Evaluator accounts are provisioned by the project owner using `npm run demo:setup` and four distinct owner-supplied passwords:
 

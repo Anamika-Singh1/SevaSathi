@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   ChevronRight,
   Menu,
+  Plus,
 } from "lucide-react";
 import { NavLink } from "@/components/nav-link";
 import { Brand } from "@/components/brand";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { logout } from "@/app/login/actions";
 import { canAccessPath, ROLE_LABELS } from "@/lib/roles";
 import { getI18n } from "@/lib/i18n/server";
+import { locationLabel, officerLabel } from "@/lib/i18n/records";
 import type { MessageKey } from "@/lib/i18n";
 import type { Profile } from "@/types/domain";
 
@@ -99,18 +101,26 @@ export async function AppShell({
               aria-hidden="true"
             />
             <span>
-              {profile.district} · {t("District")}
+              {locationLabel(profile.district, locale)} · {t("District")}
             </span>
             <span aria-hidden="true">/</span>
             <span>
-              {profile.taluk} · {t("Taluk")}
+              {locationLabel(profile.taluk, locale)} · {t("Taluk")}
             </span>
           </div>
           <div className="flex min-w-0 flex-wrap items-center gap-4 lg:ml-auto">
+            {profile.role === "OPERATOR" && (
+              <Button asChild>
+                <Link href="/applications/new">
+                  <Plus aria-hidden="true" />
+                  {t("Add application")}
+                </Link>
+              </Button>
+            )}
             <LanguageSwitcher />
             <div className="min-w-0 border-l border-border pl-4">
               <p className="text-sm leading-7 font-semibold break-words">
-                {profile.full_name}
+                {officerLabel(profile.full_name, locale)}
               </p>
               <p className="text-xs leading-7 text-muted-foreground">
                 {ROLE_LABELS[profile.role][locale]}

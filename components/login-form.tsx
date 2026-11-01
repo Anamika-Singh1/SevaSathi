@@ -100,12 +100,12 @@ export function LoginForm({
         type="submit"
         className="h-12 w-full"
         disabled={pending || !configured}
+        aria-busy={pending}
       >
-        {pending ? (
-          <LoaderCircle className="animate-spin" aria-hidden="true" />
-        ) : null}
-        {pending ? t("Signing in…") : t("Sign in")}
-        {!pending && <ArrowRight className="ml-auto" aria-hidden="true" />}
+        <LoaderCircle className={pending ? "animate-spin" : "hidden"} aria-hidden="true" />
+        <span hidden={pending}>{t("Sign in")}</span>
+        <span hidden={!pending}>{t("Signing in…")}</span>
+        <ArrowRight className={pending ? "hidden" : "ml-auto"} aria-hidden="true" />
       </Button>
       <p className="text-center text-xs leading-6 text-muted-foreground">
         {t("Contact your administrator for account access.")}

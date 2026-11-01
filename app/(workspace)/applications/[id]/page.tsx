@@ -1,5 +1,5 @@
 import { getI18n } from "@/lib/i18n/server";
-import { eventLabel, priorityReason, certificateLabel } from "@/lib/i18n/records";
+import { eventLabel, priorityReason, certificateLabel, locationLabel, officerLabel, documentLabel, demoRecordText } from "@/lib/i18n/records";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, Info, ClipboardList } from "lucide-react";
@@ -11,6 +11,8 @@ import { PriorityGuide } from "@/components/priority-guide";
 import { WorkflowPanel } from "@/components/workflow-panel";
 import { WorkflowHistory } from "@/components/workflow-history";
 import { AiAssistantPanel } from "@/components/ai-assistant-panel";
+import { RecordedTextReadingView } from "@/components/recorded-text-reading-view";
+import { readingFields } from "@/lib/ai/reading-view";
 import { canUseAi, featureForRole } from "@/lib/ai/contracts";
 import { requireOfficer } from "@/lib/auth";
 import {
@@ -47,19 +49,20 @@ export default async function ApplicationPage({
       ? (value as Record<string, boolean>)
       : {};
   const fields = [
-    [t("Applicant"), application.applicant_name],
+    [t("Applicant"), demoRecordText(application.applicant_name, locale, application.is_demo)],
+    [t("Application status"), t(application.processing_status === "APPROVED" ? "Approved" : application.processing_status === "REJECTED" ? "Rejected" : "Pending")],
     [t("Certificate type"), certificateLabel(application.certificate_type, locale)],
-    [t("Village"), application.village],
-    [t("District"), application.district],
-    [t("Taluk"), application.taluk],
+    [t("Village"), locationLabel(application.village, locale)],
+    [t("District"), locationLabel(application.district, locale)],
+    [t("Taluk"), locationLabel(application.taluk, locale)],
     [
       t("Declared annual income"),
       formatCurrency(application.annual_income, locale),
     ],
-    [t("Purpose"), application.purpose],
+    [t("Purpose"), demoRecordText(application.purpose, locale, application.is_demo)],
     [
       t("Assigned field officer"),
-      assignedOfficer?.full_name ?? t("Not assigned"),
+      assignedOfficer ? officerLabel(assignedOfficer.full_name, locale) : t("Not assigned"),
     ],
   ];
   const dates = [
@@ -96,7 +99,7 @@ export default async function ApplicationPage({
       <PageHeading
         eyebrow={t("Application details")}
         title={application.reference_number}
-        description={`${application.applicant_name} · ${application.village}`}
+        description={`${demoRecordText(application.applicant_name, locale, application.is_demo)} · ${locationLabel(application.village, locale)}`}
       >
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={application.status} />
@@ -170,6 +173,12 @@ export default async function ApplicationPage({
               </dl>
             </CardContent>
           </Card>
+          <RecordedTextReadingView
+            key={`reading-${application.id}-${workflow.version}`}
+            applicationId={application.id}
+            version={workflow.version}
+            fields={readingFields(record)}
+          />
           <Card id="documents" className="scroll-mt-6">
             <CardHeader>
               <h2 className="text-base leading-8 font-semibold">
@@ -223,7 +232,7 @@ export default async function ApplicationPage({
                     <FileText className="mt-1 size-5 shrink-0 text-primary" />
                     <div className="min-w-0">
                       <p className="text-sm leading-7 font-medium">
-                        {document.document_type}
+                        {documentLabel(document.document_type, locale)}
                       </p>
                       <p
                         lang={locale}
@@ -261,8 +270,8 @@ export default async function ApplicationPage({
             <CardContent>
               <ClipboardList className="mb-3 size-5 text-primary" />
               <p className="mb-3 text-xs leading-7 text-muted-foreground">
-                {application.village} · {application.taluk} ·{" "}
-                {application.district} {t("Fictional location")}
+                {locationLabel(application.village, locale)} · {locationLabel(application.taluk, locale)} ·{" "}
+                {locationLabel(application.district, locale)} {t("Fictional location")}
               </p>
               <p className="mb-3 text-sm font-medium">
                 {t(
@@ -277,7 +286,7 @@ export default async function ApplicationPage({
               </p>
               <p className="text-sm leading-8 whitespace-pre-wrap">
                 {workflow.field_observations ||
-                  application.field_report ||
+                  demoRecordText(application.field_report ?? "", locale, application.is_demo) ||
                   t("No field report has been recorded.")}
               </p>
               <p className="mt-4 text-xs leading-7 text-muted-foreground">
@@ -372,7 +381,7 @@ export default async function ApplicationPage({
                           {eventLabel(event.event_type, locale)}
                         </p>
                         <p>
-                          {event.actor_name} ·{" "}
+                          {officerLabel(event.actor_name, locale)} ·{" "}
                           {formatDate(event.created_at, locale)}
                         </p>
                         <p className="whitespace-pre-wrap">{event.reason}</p>
@@ -394,7 +403,7 @@ export default async function ApplicationPage({
                     className="border-l-2 border-primary/30 pl-4"
                   >
                     <p className="text-sm leading-8 whitespace-pre-wrap">
-                      {note.body}
+                      {demoRecordText(note.body, locale, application.is_demo)}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {formatDate(note.created_at, locale)}
@@ -433,7 +442,7 @@ export default async function ApplicationPage({
                   </h3>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-8">
                     {application.unresolved_actions.map((action, index) => (
-                      <li key={index}>{action}</li>
+                      <li key={index}>{demoRecordText(action, locale, application.is_demo)}</li>
                     ))}
                   </ul>
                 </div>

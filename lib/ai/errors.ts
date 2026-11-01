@@ -9,6 +9,9 @@ export class AiError extends Error {
   }
 }
 const messages: Record<string, MessageKey> = {
+  AI_TRANSLATION_FORBIDDEN: "Translation is unavailable for this application.",
+  AI_TRANSLATION_STALE: "The saved text changed. Reload the case before translating.",
+  AI_TRANSLATION_INVALID_RESPONSE: "Gemini returned an unusable translation. Retry; the original text remains available.",
   AI_UNAUTHENTICATED: "Sign in to use AI assistance.",
   AI_FORBIDDEN:
     "AI assistance is restricted to the assigned officer for this stage.",

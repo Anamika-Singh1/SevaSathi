@@ -1,6 +1,6 @@
 import { getI18n } from "@/lib/i18n/server";
 import { languageTag } from "@/lib/i18n";
-import { eventLabel } from "@/lib/i18n/records";
+import { eventLabel, officerLabel } from "@/lib/i18n/records";
 import { Circle } from "lucide-react";
 import { ROLE_LABELS, type Role } from "@/lib/roles";
 import {
@@ -100,7 +100,7 @@ export async function WorkflowHistory({
                     {event.actor_role === "LEGACY_UNKNOWN" &&
                     event.actor_name === "ಹಿಂದಿನ ಅಧಿಕಾರಿ / Historical officer"
                       ? t("Historical officer")
-                      : event.actor_name}{" "}
+                      : officerLabel(event.actor_name, locale)}{" "}
                     ·{" "}
                     {ROLE_LABELS[event.actor_role as Role]?.[locale] ??
                       t("Historical role unknown")}

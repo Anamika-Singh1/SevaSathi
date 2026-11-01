@@ -29,6 +29,9 @@ Review date: 30 October 2026 (Asia/Kolkata). Deadline supplied: Monday, 2 Novemb
 | Hosted test Auth | Intended existing operator authenticated successfully; diagnostic session signed out afterward |
 | Hosted own-profile read | Failed: HTTP 404 / `PGRST205` |
 | Hosted officer-role RPC | Failed: HTTP 404 / `PGRST202` |
+| Repeated public API/configuration check | Supplied URL/key exactly match `.env.local`; profile and role API still return the same schema-cache 404 errors |
+| Fresh SQL setup bundle, isolated local PostgreSQL 17 | Passed: twelve seeds, only the authorized active operator, eight RLS tables, existing security suite, authenticated own-profile/application reads, safe rerun refusal and test-database cleanup |
+| Nine smaller SQL Editor files, isolated local PostgreSQL 17 | Passed in order: RLS and no anonymous reads/direct untrusted writes after every committed part; no profile activated before final part; final operator/scoped reads, twelve seeds, security suite, first-part rerun refusal and isolated database cleanup verified |
 | Hosted administrator/CLI access | No usable authenticated Supabase CLI project access confirmed; no matched hosted administrator connection available |
 
 An earlier check caught a TypeScript narrowing issue in the new demo preflight; it was corrected before the passing run above. The earlier Phase 6 production build/reporter and browser assertion corrections remain documented in `QA_REPORT.md`.
@@ -39,7 +42,7 @@ The Phase 6 local results remain historical evidence: 25 live integration tests,
 
 The app discarded a profile-query error and treated `profile === null` as an inactive officer. The normal hosted user's actual requests instead show unavailable exposed schema/table/function definitions. Committed profile RLS permits only the active caller backed by a live Auth session, and no signup trigger grants roles. Actual hosted profiles/policies/triggers cannot be inspected through the missing API or without an authorized administrator connection.
 
-Apply the existing migrations to the intended hosted project, inspect the verified test identity, then run `supabase/repair-authorized-test-officer.sql` only if its authorized profile is missing/inactive. The script refuses a different user/role/jurisdiction, including a concurrent conflicting update, and checks essential schema objects; migration completeness must be verified separately. The SQL received a read-only security review, but has not been executed on the hosted database. Recheck a fresh login and `/dashboard` afterward. See `LOGIN_RECOVERY.md` for exact diagnosis, SQL and restart steps.
+Apply the existing migrations to the intended hosted project, inspect the verified test identity, then run `supabase/repair-authorized-test-officer.sql` only if its authorized profile is missing/inactive. The script refuses a different, unconfirmed, banned/deleted user or conflicting role/jurisdiction, including a concurrent update, and checks essential schema objects; migration completeness must be verified separately. A single guarded fresh-schema SQL Editor bundle was prepared at `.qa/hosted-login-setup.sql` and passed isolated local PostgreSQL verification with synthetic Auth state. No SQL has been executed on the hosted database. Recheck a fresh login and `/dashboard` afterward. See `LOGIN_RECOVERY.md` for exact diagnosis, SQL and restart steps.
 
 Automatic approval review rejected a diagnostic containing a mismatched local administrator-key request to hosted Supabase. That command was not executed. A safer normal-account-only diagnostic was approved and produced the hosted results above. No mismatched administrator key was transmitted, no hosted profile was changed, and no RLS bypass was applied.
 

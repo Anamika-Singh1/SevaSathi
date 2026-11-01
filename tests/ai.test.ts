@@ -17,17 +17,20 @@ import {
   aiSystemInstruction,
 } from "../lib/ai/gemini-provider";
 import { AiError } from "../lib/ai/errors";
+import { getGeminiConfig } from "../lib/ai/config";
 
 const id = "10000000-0000-4000-8000-000000000001";
 const suggestions: AiSuggestions = {
+  stage: "DOCUMENT_SCREENING",
   language: "kn",
   summary: "ಉಳಿಸಿದ ದಾಖಲೆಗಳ ಸಾರಾಂಶ.",
   evidence: ["ಅಧಿಕಾರಿ ದಾಖಲಿಸಿದ ಆದಾಯ ಘೋಷಣೆ."],
   missingInformation: ["ಒಂದು ದಾಖಲೆ ಬಾಕಿಯಿದೆ."],
-  questionsToVerify: ["ದಾಖಲೆಯನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆಯೇ?"],
+  followUpQuestions: ["ದಾಖಲೆಯನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆಯೇ?"],
   inconsistencies: [],
   unverifiedInformation: ["ದಾಖಲೆ ಪ್ರಾಮಾಣಿಕತೆ ಸ್ವತಂತ್ರವಾಗಿ ಪರಿಶೀಲಿಸಲ್ಪಟ್ಟಿಲ್ಲ."],
-  draft:
+  limitations: ["ಉಳಿಸಿದ ಮಾಹಿತಿಯನ್ನು ಮಾತ್ರ ಬಳಸಲಾಗಿದೆ; ಅಧಿಕಾರಿ ಪರಿಶೀಲನೆ ಅಗತ್ಯ."],
+  draftNote:
     "ಸ್ಪಷ್ಟೀಕರಣ ಕರಡು: ಬಾಕಿ ದಾಖಲೆಗಳನ್ನು ದಯವಿಟ್ಟು ಒದಗಿಸಿ. ಅಧಿಕಾರಿ ಪರಿಶೀಲನೆ ಅಗತ್ಯ.",
 };
 function record(feature: AiFeature = "screening"): AiCase {
@@ -90,6 +93,7 @@ function record(feature: AiFeature = "screening"): AiCase {
         note: "Awaiting applicant clarification",
       },
     ],
+    notes: [{ body: "Fictional officer intake note: income confirmation pending.", created_at: "2026-10-30T09:00:00.000Z" }],
   };
 }
 function harness(
@@ -117,7 +121,7 @@ function harness(
     },
     generate: async () => {
       calls++;
-      return suggestions;
+      return { ...suggestions, stage: AI_FEATURES[feature].assistanceStage };
     },
     ...changes,
   };
@@ -216,18 +220,19 @@ test("all four AI contexts use only saved, stage-relevant data and never send id
       ])
         assert.ok(!serialized.includes(secret), secret);
       if (feature === "field") {
-        assert.deepEqual(Object.keys(context), ["field"]);
+        assert.ok(!("review" in context));
         assert.equal(
           (context.field as { visit_date: unknown }).visit_date,
           null,
         );
-      } else
-        assert.equal(
+      }
+      assert.deepEqual(context.officer_notes, [{ text: "Fictional officer intake note: income confirmation pending.", recorded_at: "2026-10-30T09:00:00.000Z" }]);
+      assert.equal(
           (context.application as { declared_annual_income: number })
             .declared_annual_income,
           48000,
         );
-      return suggestions;
+      return { ...suggestions, stage: AI_FEATURES[feature].assistanceStage };
     };
     const response = await createAiHandler(setup.dependencies)(request(), {
       id,
@@ -391,12 +396,12 @@ test("missing configuration, quota failures, database failures, stale results an
     JSON.stringify({
       ...suggestions,
       language: "en",
-      draft: "We recommend approval.",
+      draftNote: "We recommend approval.",
     }),
     JSON.stringify({
       ...suggestions,
       language: "en",
-      draft: "The documents are authentic.",
+      draftNote: "The documents are authentic.",
     }),
   ])
     assert.throws(
@@ -414,7 +419,8 @@ test("missing configuration, quota failures, database failures, stale results an
       validateAiOutput(
         JSON.stringify({
           ...suggestions,
-          draft: "ಸ್ಥಳ ಭೇಟಿ ನಡೆಸಲಾಗಿದೆ. / Field visit completed.",
+          stage: "FIELD_VERIFICATION",
+          draftNote: "ಸ್ಥಳ ಭೇಟಿ ನಡೆಸಲಾಗಿದೆ. / Field visit completed.",
         }),
         "field",
         { version: 2, language: "kn" },
@@ -455,7 +461,7 @@ test("the official GenAI SDK sends structured saved-record requests with no tool
     buildAiContext("screening", record(), { version: 2, language: "kn" }),
     new AbortController().signal,
   );
-  assert.equal(result.draft, suggestions.draft);
+  assert.equal(result.draftNote, suggestions.draftNote);
   assert.equal(calls, 1);
   assert.equal(
     (sent.generationConfig as { responseMimeType: string }).responseMimeType,
@@ -549,4 +555,80 @@ test("Gemini transport errors, timeouts, malformed or blocked output are sanitiz
     generate: createGeminiGenerator(timeoutClient, "gemini-3.5-flash-lite"),
   }).handler(request(), { id, feature: "screening" });
   assert.equal(timeout.status, 504);
+});
+
+test("all four Gemini assistants produce validated stage-specific JSON in Kannada and English", async () => {
+  for (const feature of Object.keys(AI_FEATURES) as AiFeature[]) {
+    for (const language of ["kn", "en"] as const) {
+      const expected: AiSuggestions = {
+        ...(language === "kn" ? suggestions : {
+          language, summary: "Fictional saved case; income confirmation is pending.",
+          evidence: ["An officer recorded an income declaration."],
+          missingInformation: ["Residence proof has not been received."],
+          followUpQuestions: ["Has income been independently confirmed?"],
+          inconsistencies: [], unverifiedInformation: ["Income is unverified."],
+          draftNote: "Draft for officer review: request the outstanding information.",
+          limitations: ["Saved officer statements cannot establish document authenticity."],
+        }),
+        stage: AI_FEATURES[feature].assistanceStage,
+      };
+      const client = new GoogleGenAI({
+        apiKey: "fictional-sdk-test-key",
+        httpOptions: { fetch: async (_url, init) => {
+          const sent = JSON.parse(String(init?.body));
+          const schema = sent.generationConfig.responseJsonSchema;
+          assert.equal(schema.properties.stage.const, expected.stage);
+          assert.equal(schema.properties.language.const, language);
+          assert.equal(sent.tools, undefined);
+          assert.match(JSON.stringify(sent.contents), /income confirmation pending/);
+          return Response.json({ candidates: [{ content: { role: "model", parts: [{ text: JSON.stringify(expected) }] }, finishReason: "STOP" }] });
+        } },
+      });
+      const setup = harness(feature, { generate: createGeminiGenerator(client, "gemini-3.5-flash-lite") });
+      const before = JSON.stringify(setup.saved);
+      const result = await setup.handler(request({ version: 2, language }), { id, feature });
+      assert.equal(result.status, 200, `${feature}/${language}`);
+      assert.deepEqual((await result.json()).suggestions, expected);
+      assert.equal(JSON.stringify(setup.saved), before, "AI must not modify saved evidence or workflow state");
+    }
+  }
+});
+
+test("wrong-stage output and case notes changed during generation are rejected", async () => {
+  const wrongStage = await harness("field", { generate: async () => suggestions }).handler(request(), { id, feature: "field" });
+  assert.equal(wrongStage.status, 502);
+  let loads = 0;
+  const stale = harness("review", {
+    load: async () => {
+      const saved = record("review");
+      if (loads++ > 0) saved.notes[0].body = "Changed evidence while Gemini was running";
+      return saved;
+    },
+  });
+  const result = await stale.handler(request(), { id, feature: "review" });
+  assert.equal(result.status, 409, "Fresh notes must be checked even when the workflow version is unchanged");
+  assert.equal((await result.json()).suggestions, undefined);
+});
+
+test("Kannada validation covers every displayed section and draft length fits manual notes", () => {
+  for (const key of ["summary", "draftNote", "evidence", "missingInformation", "followUpQuestions", "inconsistencies", "unverifiedInformation", "limitations"] as const) {
+    const value = { ...suggestions, [key]: Array.isArray(suggestions[key]) ? ["English-only output"] : "English-only output" };
+    assert.throws(() => validateAiOutput(JSON.stringify(value), "screening", { version: 2, language: "kn" }, {}), AiError, key);
+  }
+  assert.equal(aiSuggestionsSchema.safeParse({ ...suggestions, draftNote: "ಕ".repeat(4001) }).success, false);
+  assert.equal(aiSuggestionsSchema.safeParse({ ...suggestions, limitations: undefined }).success, false);
+  for (const language of ["kn", "en"] as const) {
+    assert.throws(() => validateAiOutput(JSON.stringify({
+      ...suggestions, stage: "FIELD_VERIFICATION", language,
+      draftNote: language === "kn" ? "ಕ್ಷೇತ್ರ ಪರಿಶೀಲನೆ ಪೂರ್ಣಗೊಂಡಿದೆ." : "Field verification is complete.",
+    }), "field", { version: 2, language }, {
+      field: { visit_date: "2026-10-30", observations: "Fictional recorded visit; income confirmation pending.", verification_status: "PENDING" },
+    }), AiError, "A recorded visit alone cannot establish completed verification");
+  }
+});
+
+test("server Gemini configuration validates missing keys and invalid model names", () => {
+  assert.throws(() => getGeminiConfig({}), (error: unknown) => error instanceof AiError && error.code === "AI_NOT_CONFIGURED");
+  assert.throws(() => getGeminiConfig({ GEMINI_API_KEY: "fictional-test-key", GEMINI_MODEL: "models/not-a-bare-id" }), (error: unknown) => error instanceof AiError && error.code === "AI_INVALID_CONFIG");
+  assert.deepEqual(getGeminiConfig({ GEMINI_API_KEY: " fictional-test-key " }), { key: "fictional-test-key", model: "gemini-3.5-flash-lite" });
 });

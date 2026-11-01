@@ -2,6 +2,7 @@ import type {
   Application,
   ApplicationWorkflow,
   ChecklistItem,
+  ApplicationNote,
 } from "@/types/domain";
 import type { AiFeature, AiRequest } from "./contracts";
 
@@ -21,6 +22,7 @@ export type AiCase = {
     ChecklistItem,
     "label_kn" | "label_en" | "required" | "receipt_status" | "note"
   >[];
+  notes: Pick<ApplicationNote, "body" | "created_at">[];
 };
 
 // Explicit stage projections keep names, locations, identifiers, file paths,
@@ -40,7 +42,6 @@ export function buildAiContext(
     follow_up_resolved: w.follow_up_resolved,
     report_submitted_at: w.field_submitted_at,
   };
-  if (feature === "field") return { field };
   const screening = {
     checklist: record.checklist.map((item) => ({
       item: input.language === "kn" ? item.label_kn : item.label_en,
@@ -59,7 +60,18 @@ export function buildAiContext(
     declared_annual_income: a.annual_income,
     purpose: a.purpose,
   };
-  if (feature === "screening") return { application, screening };
+  const officer_notes = record.notes.map((note) => ({
+    text: note.body,
+    recorded_at: note.created_at,
+  }));
+  const clarification = {
+    pending: w.clarification_pending,
+    recorded_reason: w.return_reason,
+  };
+  if (feature === "screening")
+    return { application, screening, officer_notes, clarification };
+  if (feature === "field")
+    return { application, screening, field, officer_notes, clarification };
   const review = {
     notes: w.caseworker_notes,
     evidence_checks: w.review_checks,
@@ -67,11 +79,14 @@ export function buildAiContext(
     issues_resolved: w.review_issues_resolved,
     submitted_at: w.review_submitted_at,
   };
-  const clarification = {
-    pending: w.clarification_pending,
-    recorded_reason: w.return_reason,
+  const context = {
+    application,
+    screening,
+    field,
+    review,
+    officer_notes,
+    clarification,
   };
-  const context = { application, screening, field, review, clarification };
   if (feature === "review") return context;
   const closed = ["APPROVED", "REJECTED"].includes(a.status);
   return {

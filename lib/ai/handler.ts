@@ -2,6 +2,7 @@ import { z } from "zod";
 import { requestLanguage } from "@/lib/i18n";
 import {
   aiFeatureSchema,
+  AI_FEATURES,
   aiRequestSchema,
   aiSuggestionsSchema,
   canUseAi,
@@ -26,7 +27,7 @@ export type AiHandlerDependencies = {
     signal: AbortSignal,
   ) => Promise<AiSuggestions>;
 };
-async function readBody(request: Request) {
+export async function readAiRequestBody(request: Request) {
   if (
     request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !==
     "application/json"
@@ -62,39 +63,36 @@ async function readBody(request: Request) {
   }
 }
 
+export function assertAiRequestOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  const target = new URL(request.url);
+  const protocol = request.headers.get("x-forwarded-proto")?.split(",")[0].trim()
+    ?? target.protocol.slice(0, -1);
+  const host = request.headers.get("host") ?? target.host;
+  let validOrigin = !origin;
+  if (origin) {
+    try {
+      validOrigin = ["http", "https"].includes(protocol)
+        && new URL(origin).origin === new URL(`${protocol}://${host}`).origin;
+    } catch { validOrigin = false; }
+  }
+  if (!validOrigin || request.headers.get("sec-fetch-site") === "cross-site")
+    throw new AiError("AI_FORBIDDEN", 403);
+}
+
 // The handler only reads case records and reserves an AI quota slot. Its
 // dependency contract deliberately has no workflow-mutation capability.
 export function createAiHandler(deps: AiHandlerDependencies) {
   return async (request: Request, params: { id: string; feature: string }) => {
     try {
-      const origin = request.headers.get("origin");
-      const target = new URL(request.url);
-      const protocol =
-        request.headers.get("x-forwarded-proto")?.split(",")[0].trim() ??
-        target.protocol.slice(0, -1);
-      const host = request.headers.get("host") ?? target.host;
-      let validOrigin = !origin;
-      if (origin) {
-        try {
-          validOrigin =
-            ["http", "https"].includes(protocol) &&
-            new URL(origin).origin === new URL(`${protocol}://${host}`).origin;
-        } catch {
-          validOrigin = false;
-        }
-      }
-      if (
-        !validOrigin ||
-        request.headers.get("sec-fetch-site") === "cross-site"
-      )
-        throw new AiError("AI_FORBIDDEN", 403);
+      assertAiRequestOrigin(request);
       const officer = await deps.authenticate();
       if (!officer) throw new AiError("AI_UNAUTHENTICATED", 401);
       const path = z
         .object({ id: z.uuid(), feature: aiFeatureSchema })
         .safeParse(params);
       if (!path.success) throw new AiError("AI_INVALID_REQUEST", 400);
-      const parsed = aiRequestSchema.safeParse(await readBody(request));
+      const parsed = aiRequestSchema.safeParse(await readAiRequestBody(request));
       if (!parsed.success) throw new AiError("AI_INVALID_REQUEST", 400);
       const input = parsed.data,
         { id, feature } = path.data;
@@ -125,7 +123,10 @@ export function createAiHandler(deps: AiHandlerDependencies) {
       const suggestions = aiSuggestionsSchema.parse(
         await deps.generate(feature, input, context, request.signal),
       );
-      if (suggestions.language !== input.language)
+      if (
+        suggestions.language !== input.language ||
+        suggestions.stage !== AI_FEATURES[feature].assistanceStage
+      )
         throw new AiError("AI_INVALID_RESPONSE", 502);
       // Do not surface a draft if its case changed or access was revoked while Gemini ran.
       const latestOfficer = await deps.authenticate();
@@ -137,7 +138,9 @@ export function createAiHandler(deps: AiHandlerDependencies) {
       if (
         latest.workflow.version !== input.version ||
         latest.application.updated_at !== record.application.updated_at ||
-        latest.application.status !== record.application.status
+        latest.application.status !== record.application.status ||
+        JSON.stringify(buildAiContext(feature, latest, input)) !==
+          JSON.stringify(context)
       )
         throw new AiError("AI_STALE_CONTEXT", 409);
       return Response.json(

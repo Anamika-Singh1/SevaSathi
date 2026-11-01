@@ -2,6 +2,7 @@
 import { useI18n } from "@/components/language-provider";
 
 import { translateMessage, languageTag } from "@/lib/i18n";
+import { demoRecordText, locationLabel, officerLabel } from "@/lib/i18n/records";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -371,8 +372,8 @@ export function WorkflowPanel({
             </p>
             <p>
               {t("Decided by:")}{" "}
-              {officers.find((person) => person.id === workflow.decided_by)
-                ?.full_name ?? t("Legacy record")}
+              {officerLabel(officers.find((person) => person.id === workflow.decided_by)
+                ?.full_name ?? t("Legacy record"), locale)}
             </p>
             <p>
               {t("Decision time:")}{" "}
@@ -397,7 +398,7 @@ export function WorkflowPanel({
           <p className="text-sm leading-8 text-muted-foreground">
             {t("Assigned officer:")}{" "}
             <strong className="text-foreground">
-              {owner?.full_name ?? t("Not assigned")}
+              {owner ? officerLabel(owner.full_name, locale) : t("Not assigned")}
             </strong>{" "}
             · {ROLE_LABELS[stage.role][locale]}.{" "}
             {t("Only the assigned officer can act at this stage.")}
@@ -555,7 +556,7 @@ export function WorkflowPanel({
                               .filter((person) => person.role === role)
                               .map((person) => (
                                 <option key={person.id} value={person.id}>
-                                  {person.full_name}
+                                  {officerLabel(person.full_name, locale)}
                                 </option>
                               ))}
                           </select>
@@ -569,8 +570,8 @@ export function WorkflowPanel({
                     <div className="rounded-lg bg-muted p-4 text-sm leading-8">
                       <p className="font-medium">{t("Fictional location")}</p>
                       <p>
-                        {application.applicant_name} · {application.village} ·{" "}
-                        {application.taluk} · {application.district}
+                        {demoRecordText(application.applicant_name, locale, application.is_demo)} · {locationLabel(application.village, locale)} ·{" "}
+                        {locationLabel(application.taluk, locale)} · {locationLabel(application.district, locale)}
                       </p>
                       <a
                         href="#documents"
@@ -723,7 +724,7 @@ export function WorkflowPanel({
                           {t("Applicant")}
                         </dt>
                         <dd>
-                          {application.applicant_name} · {application.village}
+                          {demoRecordText(application.applicant_name, locale, application.is_demo)} · {locationLabel(application.village, locale)}
                         </dd>
                       </div>
                       <div>
@@ -894,7 +895,7 @@ export function WorkflowPanel({
           {t("Confirm decision")}
         </h2>
         <p className="mt-4 text-sm leading-8">
-          {application.reference_number} · {application.applicant_name}
+          {application.reference_number} · {demoRecordText(application.applicant_name, locale, application.is_demo)}
         </p>
         <p className="mt-2 text-sm leading-8">
           {confirmation && labelForAction(confirmation)}

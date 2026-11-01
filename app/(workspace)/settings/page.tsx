@@ -1,4 +1,5 @@
 import { getI18n } from "@/lib/i18n/server";
+import { locationLabel, officerLabel } from "@/lib/i18n/records";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ShieldCheck, LockKeyhole } from "lucide-react";
 import { requireOfficer } from "@/lib/auth";
@@ -18,11 +19,11 @@ export default async function SettingsPage({
   const { user, profile } = await requireOfficer();
   const params = await searchParams;
   const fields = [
-    [t("Name"), profile.full_name],
+    [t("Name"), officerLabel(profile.full_name, locale)],
     [t("Email"), user.email ?? "—"],
     [t("Role"), ROLE_LABELS[profile.role][locale]],
-    [t("District"), profile.district],
-    [t("Taluk"), profile.taluk],
+    [t("District"), locationLabel(profile.district, locale)],
+    [t("Taluk"), locationLabel(profile.taluk, locale)],
   ];
   return (
     <>
