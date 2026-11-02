@@ -554,5 +554,9 @@
   "{count} days past target date": "{count} days past target date",
   "Target date approaching": "Target date approaching",
   "Routine processing": "Routine processing",
-  "Application summary": "Application summary"
+  "Application summary": "Application summary",
+  "Responsible officer": "Responsible officer",
+  "Officer details unavailable": "Officer details unavailable",
+  "Checks before submission": "Checks before submission",
+  "{count} checks remaining": "{count} checks remaining"
 }

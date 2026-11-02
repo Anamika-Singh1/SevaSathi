@@ -554,5 +554,9 @@
   "{count} days past target date": "ಗುರಿ ದಿನಾಂಕವನ್ನು {count} ದಿನ ಮೀರಿದೆ",
   "Target date approaching": "ಗುರಿ ದಿನಾಂಕ ಸಮೀಪಿಸುತ್ತಿದೆ",
   "Routine processing": "ಸಾಮಾನ್ಯ ಪ್ರಕ್ರಿಯೆ",
-  "Application summary": "ಅರ್ಜಿಗಳ ಸಾರಾಂಶ"
+  "Application summary": "ಅರ್ಜಿಗಳ ಸಾರಾಂಶ",
+  "Responsible officer": "ಜವಾಬ್ದಾರಿ ಅಧಿಕಾರಿ",
+  "Officer details unavailable": "ಅಧಿಕಾರಿಯ ವಿವರಗಳು ಲಭ್ಯವಿಲ್ಲ",
+  "Checks before submission": "ಸಲ್ಲಿಸುವ ಮೊದಲು ಪರಿಶೀಲನೆಗಳು",
+  "{count} checks remaining": "{count} ಪರಿಶೀಲನೆಗಳು ಬಾಕಿ ಇವೆ"
 }
